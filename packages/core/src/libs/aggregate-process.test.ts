@@ -89,7 +89,6 @@ describe('Aggregate#process', () => {
           id: expect.any(EventId),
           type: EventType.BalanceUpdated,
           body: { balance: 10, amount: 10 },
-          meta: {},
         },
       ],
     });
@@ -200,7 +199,6 @@ describe('Aggregate#process', () => {
               version: 5,
             },
             body: { balance: 105, amount: 5 },
-            meta: {},
             timestamp: new Date(),
           },
         ])),
@@ -238,7 +236,6 @@ describe('Aggregate#process', () => {
           version: 1,
         },
         body: { amount: 100 },
-        meta: {},
         timestamp: new Date(),
       },
     ];
@@ -256,7 +253,7 @@ describe('Aggregate#process', () => {
           );
         }
 
-        for (const [index, event] of R.zip<number, Pick<Event, 'id' | 'type' | 'body' | 'meta'>>(
+        for (const [index, event] of R.zip<number, Pick<Event, 'id' | 'type' | 'body'>>(
           R.range(0, params.events.length),
           params.events
         )) {

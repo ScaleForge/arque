@@ -39,7 +39,6 @@ describe('Aggregate#reload', () => {
         version: index + 1,
       },
       body: { balance: (index + 1) * amount, amount },
-      meta: {},
       timestamp,
     }), 10);
 
@@ -91,7 +90,6 @@ describe('Aggregate#reload', () => {
             version: offset + index + 1,
           },
           body: { balance: (offset + index + 1) * amount, amount },
-          meta: {},
           timestamp,
         }),
         10
@@ -136,7 +134,6 @@ describe('Aggregate#reload', () => {
         version: 10 + index + 1,
       },
       body: { balance: 1000 + (index + 1) * amount, amount },
-      meta: {},
       timestamp,
     }), 10);
 

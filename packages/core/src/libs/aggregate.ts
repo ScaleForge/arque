@@ -211,7 +211,6 @@ export class Aggregate<
         const events = (_events instanceof Array ? _events : [_events]).map((item, index) => ({
           ...item,
           id: new EventId(),
-          meta: item.meta || {},
           timestamp,
           aggregate: {
             id: this.id,
@@ -228,7 +227,6 @@ export class Aggregate<
             id: item.id,
             type: item.type,
             body: item.body,
-            meta: item.meta,
           })),
           timestamp,
         });

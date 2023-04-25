@@ -25,7 +25,7 @@ export interface EventStoreStorageAdapter {
       version: number;
     };
     timestamp: Date;
-    events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
+    events: Pick<Event, 'id' | 'type' | 'body'>[];
   }): Promise<Transaction>;
 
   listEvents<TEvent = Event>(params: {
@@ -96,7 +96,7 @@ export class EventStore {
       version: number;
     };
     timestamp: Date;
-    events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
+    events: Pick<Event, 'id' | 'type' | 'body'>[];
   }) {
     const events: Event[] = params.events.map((item, index) => ({
       ...item,
