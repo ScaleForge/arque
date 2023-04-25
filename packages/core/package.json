@@ -21,6 +21,12 @@
     "build": "rimraf dist && tsc --project tsconfig.build.json",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "async-mutex": "0.4.0",
+    "bs58": "5.0.0",
+    "exponential-backoff": "3.1.1",
+    "lru-cache": "9.1.1"
+  },
   "publishConfig": {
     "access": "public"
   },
