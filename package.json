@@ -1,40 +1,43 @@
 {
   "name": "arque",
-  "version": "0.0.1",
-  "description": "The library for Event Sourcing.",
+  "description": "The Event Sourcing library.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "lerna run test"
   },
   "author": "Roger Madjos <rrmadjos@protonmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@nrwl/jest": "^15.9.2",
+    "@nrwl/js": "^15.9.2",
     "@nrwl/nx-cloud": "^15.3.5",
     "@types/jest": "^29.5.0",
-    "@types/ramda": "^0.28.23",
-    "@typescript-eslint/eslint-plugin": "^5.57.1",
-    "@typescript-eslint/parser": "^5.57.1",
+    "@types/ramda": "^0.29.0",
+    "@typescript-eslint/eslint-plugin": "^5.58.0",
+    "@typescript-eslint/parser": "^5.58.0",
     "eslint": "^8.38.0",
     "jest": "^29.5.0",
     "lerna": "^6.6.1",
     "nx": "^15.9.2",
     "ramda": "^0.29.0",
+    "rimraf": "^5.0.0",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },
-  "workspaces": [
-    "packages/*"
-  ],
+  "dependencies": {
+    "async-mutex": "0.4.0",
+    "bs58": "5.0.0",
+    "exponential-backoff": "3.1.1",
+    "lru-cache": "^9.1.1"
+  },
   "keywords": [
-    "event",
+    "microservices",
     "event-sourcing",
     "cqrs",
-    "microservices"
+    "event"
   ],
-  "dependencies": {
-    "async-mutex": "^0.4.0",
-    "bs58": "^5.0.0",
-    "exponential-backoff": "^3.1.1"
-  }
+  "workspaces": [
+    "packages/*"
+  ]
 }

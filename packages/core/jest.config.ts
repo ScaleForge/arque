@@ -1,5 +1,5 @@
 export default {
-  displayName: 'account',
+  displayName: '@arque/core',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
