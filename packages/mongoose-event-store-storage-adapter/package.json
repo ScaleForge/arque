@@ -1,6 +1,6 @@
 {
-  "name": "@arque/core",
-  "version": "0.1.0-alpha.9",
+  "name": "@arque/mongoose-event-store-storage-adapter",
+  "version": "0.1.0-alpha.1",
   "description": "The Event Sourcing library.",
   "author": "Scale Technologies",
   "homepage": "https://github.com/ScaleTechnologies/arque#README.md",
@@ -22,13 +22,9 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "async-mutex": "0.4.0",
-    "bs58": "5.0.0",
-    "exponential-backoff": "3.1.1",
-    "lru-cache": "9.1.1"
+    "@arque/core": "0.1.0-alpha.9"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "gitHead": "472322f47e30380c31ebd1f2a7cc4dee3d0ff66b"
+  }
 }

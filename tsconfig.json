@@ -14,7 +14,9 @@
     "esModuleInterop": true,
     "module": "commonjs",
     "types": ["node"],
-    "paths": {}
+    "paths": {
+      "@arque/core": "./packages/core/src/index.ts"
+    }
   },
   "exclude": ["node_modules"]
 }

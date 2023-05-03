@@ -38,7 +38,7 @@ export class AggregateFactory<
       ignoreSnapshot?: true,
     }
   ): Promise<Aggregate<TCommand, TEvent, TState>> {
-    const _id = id.toString('base64');
+    const _id = id.toString('hex');
 
     let promise = this.cache.get(_id);
 
@@ -62,8 +62,16 @@ export class AggregateFactory<
       })();
 
       this.cache.set(_id, promise);
+
+      return promise;
     }
 
-    return promise;
+    const aggregate = await promise;
+
+    if (!opts?.noReload) {
+      await aggregate.reload(opts);
+    }
+
+    return aggregate;
   }
 }
