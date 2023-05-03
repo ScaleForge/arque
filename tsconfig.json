@@ -13,10 +13,7 @@
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
     "module": "commonjs",
-    "types": ["node"],
-    "paths": {
-      "@arque/core": "./packages/core/src/index.ts"
-    }
+    "types": ["node"]
   },
   "exclude": ["node_modules"]
 }
