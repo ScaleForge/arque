@@ -1,4 +1,4 @@
-# `core`
+# `@arque/core`
 
 > TODO: description
 

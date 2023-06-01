@@ -4,7 +4,6 @@
   "scripts": {
     "test": "lerna run test"
   },
-  "author": "Roger Madjos <rrmadjos@protonmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
