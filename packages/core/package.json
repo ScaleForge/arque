@@ -1,6 +1,6 @@
 {
   "name": "@arque/core",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.12",
   "description": "The Event Sourcing library.",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleTechnologies/arque#README.md",
