@@ -3,6 +3,7 @@ import { EventId } from './event-id';
 export type Event<
   TType extends number = number,
   TBody extends Record<string, unknown> = Record<string, unknown>,
+  TMeta extends Record<string, unknown> = Record<string, unknown>,
 > = {
   id: EventId;
   type: TType;
@@ -11,6 +12,7 @@ export type Event<
     version: number;
   };
   body: TBody;
+  meta: TMeta;
   timestamp: Date;
 };
 
@@ -39,7 +41,7 @@ export type Command<
 export type GeneratedEvent<TEvent extends Event> = Pick<
   TEvent,
   'type' | 'body'
->;
+> & Partial<Pick<TEvent, 'meta'>>;
 
 export type CommandHandler<
   TCommand extends Command,

@@ -96,7 +96,7 @@ export class EventStore {
       version: number;
     };
     timestamp: Date;
-    events: Pick<Event, 'id' | 'type' | 'body'>[];
+    events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
   }) {
     const events: Event[] = params.events.map((item, index) => ({
       ...item,
@@ -120,11 +120,15 @@ export class EventStore {
       storageAdapterSaveEventsTransaction = await this.storageAdapter.saveEvents(params);
       streamAdapterSendEventsTransaction = await this.streamAdapter.sendEvents(streamAdapterSendEventsData);
 
-      await storageAdapterSaveEventsTransaction.commit();
-      await streamAdapterSendEventsTransaction.commit();
+      await Promise.all([
+        storageAdapterSaveEventsTransaction.commit(),
+        streamAdapterSendEventsTransaction.commit(),
+      ]);
     } catch (err) {
-      await storageAdapterSaveEventsTransaction?.abort();
-      await streamAdapterSendEventsTransaction?.abort();
+      await Promise.all([
+        storageAdapterSaveEventsTransaction?.abort(),
+        streamAdapterSendEventsTransaction?.abort(),
+      ]);
 
       throw err;
     }

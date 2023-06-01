@@ -89,6 +89,7 @@ describe('Aggregate#process', () => {
           id: expect.any(EventId),
           type: EventType.BalanceUpdated,
           body: { balance: 10, amount: 10 },
+          meta: {},
         },
       ],
     });
@@ -236,6 +237,7 @@ describe('Aggregate#process', () => {
           version: 1,
         },
         body: { amount: 100 },
+        meta: {},
         timestamp: new Date(),
       },
     ];
@@ -264,6 +266,7 @@ describe('Aggregate#process', () => {
               id: params.aggregate.id,
               version: params.aggregate.version + index,
             },
+            meta: {},
           });
         }
       }),

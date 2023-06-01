@@ -22,7 +22,9 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "0.1.0-alpha.9"
+    "@arque/core": "0.1.0-alpha.11",
+    "@scaleforge/joser": "0.1.1",
+    "mongoose": "7.1.1"
   },
   "publishConfig": {
     "access": "public"
