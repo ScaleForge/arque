@@ -1,6 +1,7 @@
 import { Event, EventStoreStorageAdapter, Snapshot } from '@arque/core';
 import mongoose, { Connection, ConnectOptions } from 'mongoose';
 import { EventSchema } from './lib/schema';
+import { backOff } from 'exponential-backoff';
 
 const SCHEMAS = {
   Event: EventSchema,
@@ -41,10 +42,10 @@ export class MongooseEventStoreStorageAdapter implements EventStoreStorageAdapte
     aggregate: { id: Buffer; version: number; };
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
-  }): Promise<{ commit(): Promise<void>; abort(): Promise<void>; }> {
+  }): Promise<void> {
     const EventModel = await this.model('Event');
 
-    const handle = async () => {
+    await backOff(async () => {
       const session = await EventModel.startSession();
 
       session.startTransaction({
@@ -54,42 +55,28 @@ export class MongooseEventStoreStorageAdapter implements EventStoreStorageAdapte
       });
 
       try {
-        await EventModel.insertMany(params.events.map(item => ({
-          ...item,
-          aggregate: params.aggregate,
-          timestamp: params.timestamp,
-        })), { session });
-      } catch (err) {
         try {
+          await EventModel.insertMany(params.events.map(item => ({
+            ...item,
+            aggregate: params.aggregate,
+            timestamp: params.timestamp,
+          })), { session });
+        } catch (err) {
           await session.abortTransaction();
-        } finally {
-          await session.endSession();
+          
+          throw err;
         }
-        
-        throw err;
+  
+        await session.commitTransaction();
+      } finally {
+        await session.endSession();
       }
-
-      return session;
-    };
-
-    const session = await handle();
-
-    return {
-      async commit() {
-        try {
-          await session.commitTransaction();
-        } finally {
-          await session.endSession();
-        }
-      },
-      async abort() {
-        try {
-          await session.abortTransaction();
-        } finally {
-          await session.endSession();
-        }
-      },
-    };
+    }, {
+      startingDelay: 100,
+      jitter: 'full',
+      maxDelay: 800,
+      numOfAttempts: 4,
+    });
   }
 
   async listEvents<TEvent = Event>(_params: { aggregate: { id: Buffer; version?: number; }; }): Promise<AsyncIterableIterator<TEvent>> {
