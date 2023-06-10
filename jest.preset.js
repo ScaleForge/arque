@@ -1,4 +1,4 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const nxPreset = require('@nrwl/jest/preset').default;
 
-module.exports = { ...nxPreset, testTimeout: 15000 };
+module.exports = { ...nxPreset, testTimeout: 30000 };

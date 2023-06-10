@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Event, EventStoreStorageAdapter, Snapshot, EventId } from '@arque/core';
-import mongoose, { Connection, ConnectOptions, Model, Schema } from 'mongoose';
+import mongoose, { Connection, ConnectOptions, Schema } from 'mongoose';
 
 const EventSchema = new Schema({
   _id: Buffer,
@@ -62,19 +61,73 @@ export class MongooseEventStoreStorageAdapter implements EventStoreStorageAdapte
     return connection.model(model, MODEL_SCHEMA_MAP[model]);
   }
 
-  saveEvents(params: { aggregate: { id: Buffer; version: number; }; timestamp: Date; events: Pick<Event, 'id' | 'type' | 'body'>[]; }): Promise<{ commit(): Promise<void>; abort(): Promise<void>; }> {
+  async saveEvents(params: {
+    aggregate: { id: Buffer; version: number; };
+    timestamp: Date;
+    events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
+  }): Promise<{ commit(): Promise<void>; abort(): Promise<void>; }> {
+    const EventModel = await this.model('Event');
+
+    const session = await EventModel.startSession();
+
+    session.startTransaction({
+      writeConcern: {
+        w: 'majority',
+      },
+    });
+
+    const commit = async () => {
+      try {
+        await session.commitTransaction();
+      } finally {
+        await session.endSession(); 
+      }
+    };
+
+    const abort = async () => {
+      await session.abortTransaction();
+      await session.endSession();
+    };
+
+    try {
+      await EventModel.insertMany(params.events.map(item => ({
+        ...item,
+        aggregate: params.aggregate,
+        timestamp: params.timestamp,
+      })), { session });
+    } catch (err) {
+      await abort();
+      
+      throw err;
+    }
+
+    return {
+      commit,
+      abort,
+    };
+  }
+
+  async listEvents<TEvent = Event>(_params: { aggregate: { id: Buffer; version?: number; }; }): Promise<AsyncIterableIterator<TEvent>> {
     throw new Error('Method not implemented.');
   }
-  listEvents<TEvent = Event>(params: { aggregate: { id: Buffer; version?: number; }; }): Promise<AsyncIterableIterator<TEvent>> {
+
+  async saveSnapshot<TState = unknown>(_params: Snapshot<TState>): Promise<void> {
     throw new Error('Method not implemented.');
   }
-  saveSnapshot<TState = unknown>(params: Snapshot<TState>): Promise<void> {
+
+  async getLatestSnapshot<TState = unknown>(_params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<TState>> {
     throw new Error('Method not implemented.');
   }
-  getLatestSnapshot<TState = unknown>(params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<TState>> {
+
+  async registerStream(_params: { event: number; stream: string; }): Promise<void> {
     throw new Error('Method not implemented.');
   }
-  registerStream(params: { event: number; stream: string; }): Promise<void> {
-    throw new Error('Method not implemented.');
+
+  async close(): Promise<void> {
+    if (this.connectionPromise) {
+      const connection = await this.connectionPromise;
+
+      await connection.close();
+    }
   }
 }

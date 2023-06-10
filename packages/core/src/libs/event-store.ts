@@ -25,7 +25,7 @@ export interface EventStoreStorageAdapter {
       version: number;
     };
     timestamp: Date;
-    events: Pick<Event, 'id' | 'type' | 'body'>[];
+    events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
   }): Promise<Transaction>;
 
   listEvents<TEvent = Event>(params: {
@@ -49,14 +49,6 @@ export interface EventStoreStorageAdapter {
 
 export interface EventStoreConfigurationStorageAdapter {
   listStreams(params: { event: number }): Promise<string[]>
-}
-
-export class InvalidAggregateVersionError extends Error {
-  constructor(id: Buffer, version: number) {
-    super(
-      `invalid aggregate version: id=${id.toString('hex')} version=${version}`
-    );
-  }
 }
 
 export class EventStore {

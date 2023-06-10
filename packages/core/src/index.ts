@@ -1,3 +1,4 @@
+export * from './libs/error';
 export * from './libs/types';
 export * from './libs/event-id';
 export * from './libs/event-store';
