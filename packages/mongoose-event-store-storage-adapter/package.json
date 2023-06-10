@@ -25,6 +25,7 @@
     "@arque/core": "^0.1.0-alpha.14",
     "@scaleforge/joser": "0.1.1",
     "decimal.js": "10.4.3",
+    "exponential-backoff": "^3.1.1",
     "mongoose": "7.2.3"
   },
   "publishConfig": {

@@ -1,32 +1,8 @@
-import { Event, EventStoreStorageAdapter, Snapshot, EventId } from '@arque/core';
-import mongoose, { Connection, ConnectOptions, Schema } from 'mongoose';
+import { Event, EventStoreStorageAdapter, Snapshot } from '@arque/core';
+import mongoose, { Connection, ConnectOptions } from 'mongoose';
+import { EventSchema } from './lib/schema';
 
-const EventSchema = new Schema({
-  _id: Buffer,
-  type: Number,
-  aggregate: {
-    id: Buffer,
-    version: Number,
-  },
-  body: Schema.Types.Mixed,
-  timestamp: Date,
-}, {
-  id: false,
-  autoIndex: true,
-  virtuals: {
-    id: {
-      get() {
-        return EventId.from(this._id);
-      },
-      set(value: EventId) {
-        this._id = value.buffer;
-      },
-    },
-  },
-});
-EventSchema.index({ 'aggregate.id': 1, 'aggregate.version': 1 }, { unique: true });
-
-const MODEL_SCHEMA_MAP = {
+const SCHEMAS = {
   Event: EventSchema,
 };
 
@@ -55,10 +31,10 @@ export class MongooseEventStoreStorageAdapter implements EventStoreStorageAdapte
     return this.connectionPromise;
   }
 
-  private async model(model: keyof typeof MODEL_SCHEMA_MAP) {
+  private async model(model: keyof typeof SCHEMAS) {
     const connection = await this.connection();
 
-    return connection.model(model, MODEL_SCHEMA_MAP[model]);
+    return connection.model(model, SCHEMAS[model]);
   }
 
   async saveEvents(params: {
@@ -68,42 +44,51 @@ export class MongooseEventStoreStorageAdapter implements EventStoreStorageAdapte
   }): Promise<{ commit(): Promise<void>; abort(): Promise<void>; }> {
     const EventModel = await this.model('Event');
 
-    const session = await EventModel.startSession();
+    const handle = async () => {
+      const session = await EventModel.startSession();
 
-    session.startTransaction({
-      writeConcern: {
-        w: 'majority',
-      },
-    });
+      session.startTransaction({
+        writeConcern: {
+          w: 'majority',
+        },
+      });
 
-    const commit = async () => {
       try {
-        await session.commitTransaction();
-      } finally {
-        await session.endSession(); 
+        await EventModel.insertMany(params.events.map(item => ({
+          ...item,
+          aggregate: params.aggregate,
+          timestamp: params.timestamp,
+        })), { session });
+      } catch (err) {
+        try {
+          await session.abortTransaction();
+        } finally {
+          await session.endSession();
+        }
+        
+        throw err;
       }
+
+      return session;
     };
 
-    const abort = async () => {
-      await session.abortTransaction();
-      await session.endSession();
-    };
-
-    try {
-      await EventModel.insertMany(params.events.map(item => ({
-        ...item,
-        aggregate: params.aggregate,
-        timestamp: params.timestamp,
-      })), { session });
-    } catch (err) {
-      await abort();
-      
-      throw err;
-    }
+    const session = await handle();
 
     return {
-      commit,
-      abort,
+      async commit() {
+        try {
+          await session.commitTransaction();
+        } finally {
+          await session.endSession();
+        }
+      },
+      async abort() {
+        try {
+          await session.abortTransaction();
+        } finally {
+          await session.endSession();
+        }
+      },
     };
   }
 

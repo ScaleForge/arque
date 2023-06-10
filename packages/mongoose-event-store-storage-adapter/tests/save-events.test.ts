@@ -33,19 +33,21 @@ async function setupFixture() {
 
 describe('MongooseEventStoreStorageAdapter#saveEvents', () => {
   test.concurrent('save event', async () => {
+    console.time();
     const event = generateFakeEvent();
 
     const { adapter, teardown } = await setupFixture();
-
+    console.timeLog();
     const txn = await adapter.saveEvents({
       aggregate: event.aggregate,
       timestamp: event.timestamp,
       events: [R.pick(['id', 'type', 'body', 'meta'], event)],
     });
-
+    console.timeLog();
     await txn.commit();
-
+    console.timeLog();
     await teardown();
+    console.timeLog();
   });
 
   test.concurrent('save multiple events', async () => {

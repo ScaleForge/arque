@@ -8,6 +8,6 @@
     "./.eslintrc.js",
     "./jest.preset.js",
     "./packages/*/src/**/*.ts",
-    "./packages/*/__tests__/**/*.ts"
+    "./packages/*/tests/**/*.ts"
   ]
 }

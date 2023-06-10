@@ -5,13 +5,8 @@ export interface EventStoreStreamReceiver {
   stop(): Promise<void>;
 }
 
-type Transaction = {
-  commit(): Promise<void>;
-  abort(): Promise<void>;
-};
-
 export interface EventStoreStreamAdapter {
-  sendEvents(data: { streams: string[], event: Event }[]): Promise<Transaction>;
+  sendEvents(data: { streams: string[], event: Event }[]): Promise<void>;
   receiveEvents(
     stream: string,
     handler: (event: Event) => Promise<void>
@@ -26,7 +21,7 @@ export interface EventStoreStorageAdapter {
     };
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
-  }): Promise<Transaction>;
+  }): Promise<void>;
 
   listEvents<TEvent = Event>(params: {
     aggregate: {
@@ -105,24 +100,7 @@ export class EventStore {
       return { streams, event };
     }));
 
-    let storageAdapterSaveEventsTransaction: Transaction;
-    let streamAdapterSendEventsTransaction: Transaction;
-
-    try {
-      storageAdapterSaveEventsTransaction = await this.storageAdapter.saveEvents(params);
-      streamAdapterSendEventsTransaction = await this.streamAdapter.sendEvents(streamAdapterSendEventsData);
-
-      await Promise.all([
-        storageAdapterSaveEventsTransaction.commit(),
-        streamAdapterSendEventsTransaction.commit(),
-      ]);
-    } catch (err) {
-      await Promise.all([
-        storageAdapterSaveEventsTransaction?.abort(),
-        streamAdapterSendEventsTransaction?.abort(),
-      ]);
-
-      throw err;
-    }
+    await this.storageAdapter.saveEvents(params);
+    await this.streamAdapter.sendEvents(streamAdapterSendEventsData);
   }
 }
