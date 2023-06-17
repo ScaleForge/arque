@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Options as JoserOptions, Joser } from '@scaleforge/joser';
+import { StorageAdapter } from './storage-adapter';
 import { Event, Snapshot } from './types';
 
 export interface EventStoreStreamReceiver {
@@ -13,45 +14,23 @@ export interface EventStoreStreamAdapter {
   ): Promise<EventStoreStreamReceiver>;
 }
 
-export interface EventStoreStorageAdapter {
-  saveEvents(params: {
-    aggregate: {
-      id: Buffer;
-      version: number;
-    };
-    timestamp: Date;
-    events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
-  }): Promise<void>;
-
-  listEvents<TEvent = Event>(params: {
-    aggregate: {
-      id: Buffer;
-      version?: number;
-    };
-  }): Promise<AsyncIterableIterator<TEvent>>;
-
-  saveSnapshot<TState = unknown>(params: Snapshot<TState>): Promise<void>;
-
-  getLatestSnapshot<TState = unknown>(params: {
-    aggregate: {
-      id: Buffer;
-      version: number;
-    };
-  }): Promise<Snapshot<TState> | null>;
-
-  registerStream(params: { event: number; stream: string; }): Promise<void>;
-}
-
 export interface EventStoreConfigurationStorageAdapter {
   listStreams(params: { event: number }): Promise<string[]>
 }
 
 export class EventStore {
+  private readonly joser: Joser;
+
   constructor(
-    private readonly storageAdapter: EventStoreStorageAdapter,
+    private readonly storageAdapter: StorageAdapter,
     private readonly streamAdapter: EventStoreStreamAdapter,
-    private readonly configurationStorageAdapter: EventStoreConfigurationStorageAdapter
-  ) {}
+    private readonly configurationStorageAdapter: EventStoreConfigurationStorageAdapter,
+    opts?: {
+      joserOptions?: JoserOptions;
+    }
+  ) {
+    this.joser = new Joser(opts?.joserOptions);
+  }
 
   public async saveSnapshot<TState = unknown>(params: Snapshot<TState>): Promise<void> {
     await this.storageAdapter.saveSnapshot(params);
@@ -91,6 +70,7 @@ export class EventStore {
         id: params.aggregate.id,
         version: params.aggregate.version + index,
       },
+      body: this.joser.serialize(item.body),
       timestamp: params.timestamp,
     }));
 

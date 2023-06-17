@@ -4,8 +4,9 @@ import { faker } from '@faker-js/faker';
 import { setTimeout } from 'timers/promises';
 import { Event, EventHandler, Command, CommandHandler } from './types';
 import { Aggregate } from './aggregate';
-import { EventStore, InvalidAggregateVersionError } from './event-store';
+import { EventStore } from './event-store';
 import { EventId } from './event-id';
+import { AggregateVersionConflictError } from './error';
 import { arrayToAsyncIterableIterator } from '../../__tests__/helpers';
 
 enum EventType {
@@ -180,13 +181,13 @@ describe('Aggregate#process', () => {
     expect(aggregate.version).toEqual(amounts.length);
   });
 
-  test.concurrent('invalid aggregate version', async () => {
+  test.concurrent('aggregate version conflict', async () => {
     const id = randomBytes(13);
 
     const EventStoreMock = {
       saveEvents: jest.fn()
         .mockImplementationOnce(() =>
-          Promise.reject(new InvalidAggregateVersionError(id, 5))
+          Promise.reject(new AggregateVersionConflictError(id, 5))
         )
         .mockResolvedValueOnce(undefined),
       listEvents: jest.fn()
@@ -249,7 +250,7 @@ describe('Aggregate#process', () => {
         const lastEvent = R.last(events);
 
         if (lastEvent && lastEvent.aggregate.version != params.aggregate.version - 1) {
-          throw new InvalidAggregateVersionError(
+          throw new AggregateVersionConflictError(
             id,
             lastEvent.aggregate.version
           );

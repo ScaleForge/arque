@@ -2,7 +2,7 @@ import { EventId } from './event-id';
 
 export type Event<
   TType extends number = number,
-  TBody extends Record<string, unknown> = Record<string, unknown>,
+  TBody = unknown,
   TMeta extends Record<string, unknown> = Record<string, unknown>,
 > = {
   id: EventId;
@@ -73,4 +73,9 @@ export type Snapshot<TState = unknown> = {
   };
   state: TState;
   timestamp: Date;
+};
+
+export type Stream = {
+  name: string;
+  events: number[];
 };

@@ -1,5 +1,5 @@
 {
-  "name": "@arque/mongoose-event-store-storage-adapter",
+  "name": "@arque/mongoose-storage-adapter",
   "version": "0.1.0-alpha.4",
   "description": "The Event Sourcing library.",
   "author": "ScaleForge",
@@ -24,6 +24,7 @@
   "dependencies": {
     "@arque/core": "^0.1.0-alpha.16",
     "@scaleforge/joser": "0.1.1",
+    "debug": "^4.3.4",
     "decimal.js": "10.4.3",
     "exponential-backoff": "^3.1.1",
     "mongoose": "7.2.3"

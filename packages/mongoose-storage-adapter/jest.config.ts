@@ -1,4 +1,4 @@
 export default {
-  displayName: '@arque/core',
+  displayName: '@arque/mongoose-storage-adapter',
   preset: '../../jest.preset.js',
 };

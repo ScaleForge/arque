@@ -10,6 +10,8 @@
     "@nrwl/jest": "^15.9.2",
     "@nrwl/js": "^15.9.2",
     "@nrwl/nx-cloud": "^15.3.5",
+    "@scaleforge/joser": "^0.2.0",
+    "@types/debug": "^4.1.8",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.2.6",
     "@types/ramda": "^0.29.2",
