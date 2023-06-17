@@ -138,7 +138,7 @@ export class Aggregate<
     },
   ) {
     if (!opts?.ignoreSnapshot) {
-      const snapshot = await this.eventStore.getLatestSnapshot<TState>({
+      const snapshot = await this.eventStore.getSnapshot<TState>({
         aggregate: {
           id: this.id,
           version: this.version,

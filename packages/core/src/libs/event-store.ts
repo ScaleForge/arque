@@ -1,4 +1,4 @@
-import { Options as JoserOptions, Joser } from '@scaleforge/joser';
+import { Joser } from '@scaleforge/joser';
 import { StorageAdapter } from './storage-adapter';
 import { Event, Snapshot } from './types';
 
@@ -7,42 +7,42 @@ export interface EventStoreStreamReceiver {
 }
 
 export interface EventStoreStreamAdapter {
-  sendEvents(data: { streams: string[], event: Event }[]): Promise<void>;
+  sendEvents(params: { events: Event[] }): Promise<void>;
   receiveEvents(
     stream: string,
     handler: (event: Event) => Promise<void>
   ): Promise<EventStoreStreamReceiver>;
 }
 
-export interface EventStoreConfigurationStorageAdapter {
-  listStreams(params: { event: number }): Promise<string[]>
-}
+export type Serializer = {
+  serialize: (value: unknown) => unknown;
+  deserialize: (raw: unknown) => unknown;
+};
 
 export class EventStore {
-  private readonly joser: Joser;
+  private readonly serializer: Serializer;
 
   constructor(
     private readonly storageAdapter: StorageAdapter,
     private readonly streamAdapter: EventStoreStreamAdapter,
-    private readonly configurationStorageAdapter: EventStoreConfigurationStorageAdapter,
     opts?: {
-      joserOptions?: JoserOptions;
-    }
+      serializer?: Serializer
+    },
   ) {
-    this.joser = new Joser(opts?.joserOptions);
+    this.serializer = opts?.serializer ?? new Joser();
   }
 
   public async saveSnapshot<TState = unknown>(params: Snapshot<TState>): Promise<void> {
     await this.storageAdapter.saveSnapshot(params);
   }
 
-  public async getLatestSnapshot<TState = unknown>(params: {
+  public async getSnapshot<TState = unknown>(params: {
     aggregate: {
       id: Buffer;
       version: number;
     };
   }): Promise<Snapshot<TState> | null> {
-    return this.storageAdapter.getLatestSnapshot(params);
+    return this.storageAdapter.getSnapshot(params);
   }
 
   public async listEvents<TEvent = Event>(
@@ -64,23 +64,25 @@ export class EventStore {
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
   }) {
-    const events: Event[] = params.events.map((item, index) => ({
-      ...item,
-      aggregate: {
-        id: params.aggregate.id,
-        version: params.aggregate.version + index,
-      },
-      body: this.joser.serialize(item.body),
-      timestamp: params.timestamp,
-    }));
+    const events: Event[] = await Promise.all(params.events.map(async (event, index) => {
+      const streams = await this.storageAdapter.listStreams({ event: event.type });
 
-    const streamAdapterSendEventsData = await Promise.all(events.map(async (event) => {
-      const streams = await this.configurationStorageAdapter.listStreams({ event: event.type });
-
-      return { streams, event };
+      return {
+        ...event,
+        aggregate: {
+          id: params.aggregate.id,
+          version: params.aggregate.version + index,
+        },
+        body: this.serializer.serialize(event.body),
+        meta: {
+          ...event.meta,
+          streams,
+        },
+        timestamp: params.timestamp,
+      };
     }));
 
     await this.storageAdapter.saveEvents(params);
-    await this.streamAdapter.sendEvents(streamAdapterSendEventsData);
+    await this.streamAdapter.sendEvents({ events });
   }
 }

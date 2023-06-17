@@ -19,7 +19,7 @@ export interface StorageAdapter {
 
   saveSnapshot<TState = unknown>(params: Snapshot<TState>): Promise<void>;
 
-  getLatestSnapshot<TState = unknown>(params: {
+  getSnapshot<TState = unknown>(params: {
     aggregate: {
       id: Buffer;
       version: number;
@@ -27,4 +27,6 @@ export interface StorageAdapter {
   }): Promise<Snapshot<TState> | null>;
 
   saveStream(params: Stream): Promise<void>;
+
+  listStreams(params: { event: number }): Promise<string[]>;
 }

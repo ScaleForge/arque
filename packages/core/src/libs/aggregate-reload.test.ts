@@ -44,7 +44,7 @@ describe('Aggregate#reload', () => {
 
     const EventStoreMock = {
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator(events)),
-      getLatestSnapshot: jest.fn().mockResolvedValue(null),
+      getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
     const aggregate = new Aggregate<Command<number, number[]>, BalanceUpdatedEvent, State>(
@@ -64,7 +64,7 @@ describe('Aggregate#reload', () => {
         version: 0,
       },
     });
-    expect(EventStoreMock.getLatestSnapshot).toBeCalledWith({
+    expect(EventStoreMock.getSnapshot).toBeCalledWith({
       aggregate: {
         id,
         version: 0,
@@ -102,7 +102,7 @@ describe('Aggregate#reload', () => {
         .mockImplementationOnce(async () => generateEvents(0))
         .mockImplementationOnce(async () => generateEvents(10))
         .mockImplementationOnce(async () => generateEvents(20)),
-      getLatestSnapshot: jest.fn().mockResolvedValue(null),
+      getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
     const aggregate = new Aggregate<Command<number, number[]>, BalanceUpdatedEvent, { balance: number }>(
@@ -117,7 +117,7 @@ describe('Aggregate#reload', () => {
     await Promise.all(R.times(() => aggregate.reload(), 3));
 
     expect(EventStoreMock.listEvents).toBeCalledTimes(3);
-    expect(EventStoreMock.getLatestSnapshot).toBeCalledTimes(3);
+    expect(EventStoreMock.getSnapshot).toBeCalledTimes(3);
     expect(aggregate.state).toEqual({ balance: 30 * amount });
     expect(aggregate.version).toEqual(30);
   });
@@ -139,7 +139,7 @@ describe('Aggregate#reload', () => {
 
     const EventStoreMock = {
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator(events)),
-      getLatestSnapshot: jest.fn().mockResolvedValue({
+      getSnapshot: jest.fn().mockResolvedValue({
         aggregate: {
           id,
           version: 10,
@@ -166,7 +166,7 @@ describe('Aggregate#reload', () => {
         version: 10,
       },
     });
-    expect(EventStoreMock.getLatestSnapshot).toBeCalledWith({
+    expect(EventStoreMock.getSnapshot).toBeCalledWith({
       aggregate: {
         id,
         version: 0,

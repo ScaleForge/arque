@@ -205,12 +205,12 @@ export class MongooseEventStoreStorageAdapter implements StorageAdapter {
     });
   }
 
-  async getLatestSnapshot<TState = unknown>(params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<TState> | null> {
+  async getSnapshot<TState = unknown>(params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<TState> | null> {
     const Snapshot = await this.model('Snapshot');
 
     const snapshot = await Snapshot.findOne({
       'aggregate.id': params.aggregate.id,
-      'aggregate.version': { $lte: params.aggregate.version },
+      'aggregate.version': { $gt: params.aggregate.version },
     }).sort({
       'aggregate.version': -1,
     });
@@ -244,6 +244,23 @@ export class MongooseEventStoreStorageAdapter implements StorageAdapter {
         w: 'majority',
       },
     });
+  }
+
+  async getStream(params: { name: string }): Promise<Stream | null> {
+    const Stream = await this.model('Stream');
+
+    const stream = await Stream.findOne({
+      name: params.name,
+    });
+
+    if (!stream) {
+      return null;
+    }
+
+    return {
+      name: stream['name'],
+      events: stream['events'],
+    };
   }
 
   async close(): Promise<void> {

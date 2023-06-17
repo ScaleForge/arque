@@ -62,7 +62,7 @@ describe('Aggregate#process', () => {
     const EventStoreMock = {
       saveEvents: jest.fn().mockResolvedValue(undefined),
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator([])),
-      getLatestSnapshot: jest.fn().mockResolvedValue(null),
+      getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
     const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
@@ -100,7 +100,7 @@ describe('Aggregate#process', () => {
         version: 0,
       },
     });
-    expect(EventStoreMock.getLatestSnapshot).toBeCalledWith({
+    expect(EventStoreMock.getSnapshot).toBeCalledWith({
       aggregate: {
         id,
         version: 0,
@@ -115,7 +115,7 @@ describe('Aggregate#process', () => {
 
     const EventStoreMock = {
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator([])),
-      getLatestSnapshot: jest.fn().mockResolvedValue(null),
+      getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
     const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
@@ -138,7 +138,7 @@ describe('Aggregate#process', () => {
         version: 0,
       },
     });
-    expect(EventStoreMock.getLatestSnapshot).toBeCalledWith({
+    expect(EventStoreMock.getSnapshot).toBeCalledWith({
       aggregate: {
         id,
         version: 0,
@@ -155,7 +155,7 @@ describe('Aggregate#process', () => {
     const EventStoreMock = {
       saveEvents: jest.fn().mockResolvedValue(undefined),
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator([])),
-      getLatestSnapshot: jest.fn().mockResolvedValue(null),
+      getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
     const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
@@ -176,7 +176,7 @@ describe('Aggregate#process', () => {
 
     expect(EventStoreMock.saveEvents).toBeCalledTimes(amounts.length);
     expect(EventStoreMock.listEvents).toBeCalledTimes(amounts.length);
-    expect(EventStoreMock.getLatestSnapshot).toBeCalledTimes(amounts.length);
+    expect(EventStoreMock.getSnapshot).toBeCalledTimes(amounts.length);
     expect(aggregate.state).toEqual({ balance: R.sum(amounts) });
     expect(aggregate.version).toEqual(amounts.length);
   });
@@ -204,7 +204,7 @@ describe('Aggregate#process', () => {
             timestamp: new Date(),
           },
         ])),
-      getLatestSnapshot: jest.fn().mockResolvedValue(null),
+      getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
     const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
@@ -276,7 +276,7 @@ describe('Aggregate#process', () => {
 
         return arrayToAsyncIterableIterator(events.slice(params.aggregate.version));
       }),
-      getLatestSnapshot: jest.fn().mockResolvedValue(null),
+      getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
     await Promise.all(R.times(async () => {
