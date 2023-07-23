@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import R from 'ramda';
-import { Event, EventHandler, Command } from './types';
+import { Event, EventHandler, Command, CommandHandler } from './types';
 import { EventId } from './event-id';
 import { Aggregate } from './aggregate';
 import { EventStore } from './event-store';
@@ -15,10 +15,14 @@ type BalanceUpdatedEvent = Event<
   { balance: number; amount: number }
 >;
 
-type State = { balance: number };
+type BalanceAggregateState = { balance: number };
+
+type BalanceAggregateCommandHandler = CommandHandler<Command<number, number[]>, BalanceUpdatedEvent, BalanceAggregateState>;
+
+type BalanceAggregateEventHandler = EventHandler<BalanceUpdatedEvent, BalanceAggregateState>;
 
 describe('Aggregate#reload', () => {
-  const handler: EventHandler<BalanceUpdatedEvent, State> = {
+  const handler: BalanceAggregateEventHandler = {
     type: EventType.BalanceUpdated,
     handle(_, event: BalanceUpdatedEvent) {
       return {
@@ -47,7 +51,11 @@ describe('Aggregate#reload', () => {
       getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
-    const aggregate = new Aggregate<Command<number, number[]>, BalanceUpdatedEvent, State>(
+    const aggregate = new Aggregate<
+      BalanceAggregateState,
+      BalanceAggregateCommandHandler,
+      BalanceAggregateEventHandler
+    >(
       EventStoreMock as never as EventStore,
       [],
       [handler],
@@ -105,7 +113,11 @@ describe('Aggregate#reload', () => {
       getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
-    const aggregate = new Aggregate<Command<number, number[]>, BalanceUpdatedEvent, { balance: number }>(
+    const aggregate = new Aggregate<
+      BalanceAggregateState,
+      BalanceAggregateCommandHandler,
+      BalanceAggregateEventHandler
+    >(
       EventStoreMock as never as EventStore,
       [],
       [handler],
@@ -149,7 +161,11 @@ describe('Aggregate#reload', () => {
       }),
     };
 
-    const aggregate = new Aggregate<Command<number, number[]>, BalanceUpdatedEvent, { balance: number }>(
+    const aggregate = new Aggregate<
+      BalanceAggregateState,
+      BalanceAggregateCommandHandler,
+      BalanceAggregateEventHandler
+    >(
       EventStoreMock as never as EventStore,
       [],
       [handler],

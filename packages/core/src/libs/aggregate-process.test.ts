@@ -27,11 +27,15 @@ type UpdateBalanceCommand = Command<
   [{ amount: number }]
 >;
 
-type State = { balance: number };
+type BalanceAggregateState = { balance: number };
+
+type BalanceAggregateCommandHandler = CommandHandler<UpdateBalanceCommand, BalanceUpdatedEvent, BalanceAggregateState>;
+
+type BalanceAggregateEventHandler = EventHandler<BalanceUpdatedEvent, BalanceAggregateState>;
 
 
 describe('Aggregate#process', () => {
-  const eventHandler: EventHandler<BalanceUpdatedEvent, State> = {
+  const eventHandler: BalanceAggregateEventHandler = {
     type: EventType.BalanceUpdated,
     handle(_, event) {
       return {
@@ -40,7 +44,7 @@ describe('Aggregate#process', () => {
     },
   };
 
-  const commandHandler: CommandHandler<UpdateBalanceCommand, BalanceUpdatedEvent, State> = {
+  const commandHandler: BalanceAggregateCommandHandler = {
     type: CommandType.UpdateBalance,
     handle(ctx, _, params) {
       const balance = ctx.state.balance + params.amount;
@@ -60,12 +64,12 @@ describe('Aggregate#process', () => {
     const id = randomBytes(13);
 
     const EventStoreMock = {
-      saveEvents: jest.fn().mockResolvedValue(undefined),
+      dispatchEvents: jest.fn().mockResolvedValue(undefined),
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator([])),
       getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
-    const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
+    const aggregate = new Aggregate<BalanceAggregateState, BalanceAggregateCommandHandler, BalanceAggregateEventHandler>(
       EventStoreMock as never as EventStore,
       [commandHandler],
       [eventHandler],
@@ -79,7 +83,7 @@ describe('Aggregate#process', () => {
       args: [{ amount: 10 }],
     });
 
-    expect(EventStoreMock.saveEvents).toBeCalledWith({
+    expect(EventStoreMock.dispatchEvents).toBeCalledWith({
       aggregate: {
         id,
         version: 1,
@@ -118,7 +122,7 @@ describe('Aggregate#process', () => {
       getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
-    const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
+    const aggregate = new Aggregate<BalanceAggregateState, BalanceAggregateCommandHandler, BalanceAggregateEventHandler>(
       EventStoreMock as never as EventStore,
       [commandHandler],
       [eventHandler],
@@ -153,12 +157,12 @@ describe('Aggregate#process', () => {
     const amounts = R.times(() => faker.datatype.number({ min: 10, max: 100, precision: 2 }), 10);
 
     const EventStoreMock = {
-      saveEvents: jest.fn().mockResolvedValue(undefined),
+      dispatchEvents: jest.fn().mockResolvedValue(undefined),
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator([])),
       getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
-    const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
+    const aggregate = new Aggregate<BalanceAggregateState, BalanceAggregateCommandHandler, BalanceAggregateEventHandler>(
       EventStoreMock as never as EventStore,
       [commandHandler],
       [eventHandler],
@@ -174,7 +178,7 @@ describe('Aggregate#process', () => {
       });
     }
 
-    expect(EventStoreMock.saveEvents).toBeCalledTimes(amounts.length);
+    expect(EventStoreMock.dispatchEvents).toBeCalledTimes(amounts.length);
     expect(EventStoreMock.listEvents).toBeCalledTimes(amounts.length);
     expect(EventStoreMock.getSnapshot).toBeCalledTimes(amounts.length);
     expect(aggregate.state).toEqual({ balance: R.sum(amounts) });
@@ -185,7 +189,7 @@ describe('Aggregate#process', () => {
     const id = randomBytes(13);
 
     const EventStoreMock = {
-      saveEvents: jest.fn()
+      dispatchEvents: jest.fn()
         .mockImplementationOnce(() =>
           Promise.reject(new AggregateVersionConflictError(id, 5))
         )
@@ -207,7 +211,7 @@ describe('Aggregate#process', () => {
       getSnapshot: jest.fn().mockResolvedValue(null),
     };
 
-    const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
+    const aggregate = new Aggregate<BalanceAggregateState, BalanceAggregateCommandHandler, BalanceAggregateEventHandler>(
       EventStoreMock as never as EventStore,
       [commandHandler],
       [eventHandler],
@@ -221,7 +225,7 @@ describe('Aggregate#process', () => {
       args: [{ amount: 10 }],
     });
 
-    expect(EventStoreMock.saveEvents).toBeCalledTimes(2);
+    expect(EventStoreMock.dispatchEvents).toBeCalledTimes(2);
     expect(EventStoreMock.listEvents).toBeCalledTimes(2);
     expect(aggregate.state).toEqual({ balance: 115 });
     expect(aggregate.version).toEqual(6);
@@ -244,7 +248,7 @@ describe('Aggregate#process', () => {
     ];
 
     const EventStoreMock = {
-      saveEvents: jest.fn().mockImplementation(async (params) => {
+      dispatchEvents: jest.fn().mockImplementation(async (params) => {
         await setTimeout(50 + faker.datatype.number(100));
 
         const lastEvent = R.last(events);
@@ -282,7 +286,7 @@ describe('Aggregate#process', () => {
     await Promise.all(R.times(async () => {
       await setTimeout(10 + faker.datatype.number(50));
 
-      const aggregate = new Aggregate<UpdateBalanceCommand, BalanceUpdatedEvent, State>(
+      const aggregate = new Aggregate<BalanceAggregateState, BalanceAggregateCommandHandler, BalanceAggregateEventHandler>(
         EventStoreMock as never as EventStore,
         [commandHandler],
         [eventHandler],

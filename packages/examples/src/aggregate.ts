@@ -70,7 +70,7 @@ async function main() {
 
   const store = new EventStore(storage, stream);
 
-  const WalletAggregateFactory = new AggregateFactory<WalletAggregateCommandHandler, WalletAggregateEventHandler, WalletAggregateState>(
+  const WalletAggregateFactory = new AggregateFactory<WalletAggregateState, WalletAggregateCommandHandler, WalletAggregateEventHandler>(
     store,
     [
       {

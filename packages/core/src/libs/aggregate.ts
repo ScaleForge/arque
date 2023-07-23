@@ -1,7 +1,7 @@
 import { Mutex } from 'async-mutex';
 import { backOff } from 'exponential-backoff';
 import assert from 'assert';
-import { Event, EventHandler, CommandHandler } from './types';
+import { Event, EventHandler, CommandHandler, Command } from './types';
 import { EventStore } from './event-store';
 import { EventId } from './event-id';
 import { AggregateVersionConflictError } from './error';
@@ -21,9 +21,10 @@ export type SnapshotOpts<TState = unknown> = {
 };
 
 export class Aggregate<
-  TCommandHandler extends CommandHandler = CommandHandler,
-  TEventHandler extends EventHandler = EventHandler,
   TState = unknown,
+  TCommandHandler extends CommandHandler<Command, Event, TState> = CommandHandler<Command, Event, TState>,
+  TEventHandler extends EventHandler<Event, TState> = EventHandler<Event, TState>,
+
 > {
   private mutex: Mutex;
 

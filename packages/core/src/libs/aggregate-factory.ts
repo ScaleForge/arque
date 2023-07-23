@@ -1,16 +1,16 @@
 import { LRUCache } from 'lru-cache';
 import { EventStore } from './event-store';
 import { Aggregate, SnapshotOpts } from './aggregate';
-import { CommandHandler, EventHandler } from './types';
+import { Command, CommandHandler, Event, EventHandler } from './types';
 
 export class AggregateFactory<
-  TCommandHandler extends CommandHandler = CommandHandler,
-  TEventHandler extends EventHandler = EventHandler,
   TState = unknown,
+  TCommandHandler extends CommandHandler<Command, Event, TState> = CommandHandler<Command, Event, TState>,
+  TEventHandler extends EventHandler<Event, TState> = EventHandler<Event, TState>,
 > {
   private cache: LRUCache<
     string,
-    Promise<Aggregate<TCommandHandler, TEventHandler, TState>>
+    Promise<Aggregate<TState, TCommandHandler, TEventHandler>>
   >;
 
   constructor(
@@ -38,7 +38,7 @@ export class AggregateFactory<
       noReload?: true,
       ignoreSnapshot?: true,
     }
-  ): Promise<Aggregate<TCommandHandler, TEventHandler, TState>> {
+  ): Promise<Aggregate<TState, TCommandHandler, TEventHandler>> {
     const _id = id.toString('hex');
 
     let promise = this.cache.get(_id);
@@ -48,7 +48,7 @@ export class AggregateFactory<
         const state = this.opts?.defaultState ? 
           (this.opts.defaultState instanceof Function ? this.opts.defaultState() : this.opts.defaultState): null;
 
-        const aggregate = new Aggregate<TCommandHandler, TEventHandler, TState>(
+        const aggregate = new Aggregate<TState, TCommandHandler, TEventHandler>(
           this.eventStore,
           this.commandHandlers,
           this.eventHandlers,
