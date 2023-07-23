@@ -29,4 +29,6 @@ export interface StorageAdapter {
   saveStream(params: Stream): Promise<void>;
 
   listStreams(params: { event: number }): Promise<string[]>;
+
+  close(): Promise<void>;
 }

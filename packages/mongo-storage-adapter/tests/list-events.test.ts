@@ -4,7 +4,7 @@ import { EventId } from '@arque/core';
 import { setupFixture } from './helpers/fixture';
 import { generateFakeEvent } from './helpers/generate-fake-event';
 
-describe('MongooseEventStoreStorageAdapter#listEvents', () => {
+describe('MongoStorageAdapter#listEvents', () => {
   test.concurrent('list events', async () => {
     const aggregate = randomBytes(13);
 

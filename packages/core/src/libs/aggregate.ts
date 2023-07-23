@@ -1,9 +1,13 @@
 import { Mutex } from 'async-mutex';
 import { backOff } from 'exponential-backoff';
 import assert from 'assert';
-import { Event, EventHandler, Command, CommandHandler } from './types';
+import { Event, EventHandler, CommandHandler } from './types';
 import { EventStore } from './event-store';
 import { EventId } from './event-id';
+import { AggregateVersionConflictError } from './error';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ExtractCommand<T> = T extends CommandHandler<infer Command, any, any> ? Command : never;
 
 export type SnapshotOpts<TState = unknown> = {
   interval?: number;
@@ -17,23 +21,23 @@ export type SnapshotOpts<TState = unknown> = {
 };
 
 export class Aggregate<
-  TCommand extends Command = Command,
-  TEvent extends Event = Event,
+  TCommandHandler extends CommandHandler = CommandHandler,
+  TEventHandler extends EventHandler = EventHandler,
   TState = unknown,
 > {
   private mutex: Mutex;
 
   private commandHandlers: Map<
     number,
-    CommandHandler<TCommand, Event, TState>
+    TCommandHandler
   >;
 
-  private eventHandlers: Map<number, EventHandler<Event, TState>>;
+  private eventHandlers: Map<number, TEventHandler>;
 
   constructor(
     private readonly eventStore: EventStore,
-    commandHandlers: CommandHandler<TCommand, TEvent, TState>[],
-    eventHandlers: EventHandler<TEvent, TState>[],
+    commandHandlers: TCommandHandler[],
+    eventHandlers: TEventHandler[],
     private _id: Buffer,
     private _version: number,
     private _state: TState,
@@ -116,7 +120,7 @@ export class Aggregate<
         event,
       );
 
-      this._state = state;
+      this._state = state as TState;
       this._version = event.aggregate.version;
       
       if (!opts?.disableSnapshot && this.shoudTakeSnapshot()) {
@@ -173,7 +177,7 @@ export class Aggregate<
     }
   }
 
-  public async process(command: TCommand, opts?: {
+  public async process(command: ExtractCommand<TCommandHandler>, opts?: {
     noInitialReload?: true,
     ignoreSnapshot?: true,
     maxRetries?: number,
@@ -213,7 +217,7 @@ export class Aggregate<
           meta: item.meta ?? {},
         }));
 
-        await this.eventStore.saveEvents({
+        await this.eventStore.dispatchEvents({
           aggregate: {
             id: this.id,
             version: this.version + 1,
@@ -238,6 +242,9 @@ export class Aggregate<
       numOfAttempts: opts?.maxRetries || 10,
       startingDelay: 100,
       timeMultiple: 2,
+      retry(err) {
+        return err instanceof AggregateVersionConflictError;
+      },
     });
   }
 }

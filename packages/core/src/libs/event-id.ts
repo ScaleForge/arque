@@ -18,10 +18,6 @@ export class EventId {
 
     this._buffer = Buffer.alloc(12, 0);
 
-    if (EventId.counter === 0xffffff) {
-      while(EventId.timestamp === this.timestamp()) { /* empty */ }
-    }
-
     EventId.timestamp = this.timestamp();
     EventId.counter = (EventId.counter + 1) & 0xffffff;
 

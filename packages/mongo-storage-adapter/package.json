@@ -1,5 +1,5 @@
 {
-  "name": "@arque/mongoose-storage-adapter",
+  "name": "@arque/mongo-storage-adapter",
   "version": "0.1.0-alpha.4",
   "description": "The Event Sourcing library.",
   "author": "ScaleForge",

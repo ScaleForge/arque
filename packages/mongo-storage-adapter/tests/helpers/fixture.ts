@@ -1,5 +1,5 @@
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
-import { MongooseEventStoreStorageAdapter } from '../../src';
+import { MongoStorageAdapter } from '../../src';
 
 export async function setupFixture() {
   const mongo = await MongoMemoryReplSet.create({
@@ -16,7 +16,7 @@ export async function setupFixture() {
 
   await mongo.waitUntilRunning();
 
-  const adapter = new MongooseEventStoreStorageAdapter({
+  const adapter = new MongoStorageAdapter({
     uri: mongo.getUri(),
   });
 

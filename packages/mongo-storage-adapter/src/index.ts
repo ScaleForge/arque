@@ -6,11 +6,11 @@ import debug from 'debug';
 import assert from 'assert';
 
 const logger = {
-  warn: debug('MongooseStorageAdapter:WARN'),
-  error: debug('MongooseStorageAdapter:ERROR'),
+  warn: debug('MongoStorageAdapter:WARN'),
+  error: debug('MongoStorageAdapter:ERROR'),
 };
 
-export class MongooseEventStoreStorageAdapter implements StorageAdapter {
+export class MongoStorageAdapter implements StorageAdapter {
   private connectionPromise: Promise<Connection>;
 
   constructor(private readonly opts?: {
@@ -18,8 +18,7 @@ export class MongooseEventStoreStorageAdapter implements StorageAdapter {
     readonly saveEventsRetryStartingDelay?: number;
     readonly saveEventsRetryMaxDelay?: number;
     readonly saveEventsRetryMaxAttempts?: number;
-  } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>) {
-  }
+  } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>) {}
 
   private async connection() {
     if (!this.connectionPromise) {
@@ -261,6 +260,10 @@ export class MongooseEventStoreStorageAdapter implements StorageAdapter {
       name: stream['name'],
       events: stream['events'],
     };
+  }
+
+  listStreams(_params: { event: number; }): Promise<string[]> {
+    throw new Error('Method not implemented.');
   }
 
   async close(): Promise<void> {

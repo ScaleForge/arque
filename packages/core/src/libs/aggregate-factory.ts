@@ -1,23 +1,24 @@
 import { LRUCache } from 'lru-cache';
 import { EventStore } from './event-store';
 import { Aggregate, SnapshotOpts } from './aggregate';
-import { Command, CommandHandler, Event, EventHandler } from './types';
+import { CommandHandler, EventHandler } from './types';
 
 export class AggregateFactory<
-  TCommand extends Command = Command,
-  TEvent extends Event = Event,
+  TCommandHandler extends CommandHandler = CommandHandler,
+  TEventHandler extends EventHandler = EventHandler,
   TState = unknown,
 > {
   private cache: LRUCache<
     string,
-    Promise<Aggregate<TCommand, TEvent, TState>>
+    Promise<Aggregate<TCommandHandler, TEventHandler, TState>>
   >;
 
   constructor(
     private readonly eventStore: EventStore,
-    private commandHandlers: CommandHandler<TCommand, TEvent, TState>[],
-    private eventHandlers: EventHandler<TEvent, TState>[],
-    private opts?: {
+    private commandHandlers: TCommandHandler[],
+    private eventHandlers: TEventHandler[],
+    private readonly opts?: {
+      readonly defaultState?: TState | (() => TState);
       readonly cacheOpts?: {
         max?: number;
         ttl?: number;
@@ -37,20 +38,23 @@ export class AggregateFactory<
       noReload?: true,
       ignoreSnapshot?: true,
     }
-  ): Promise<Aggregate<TCommand, TEvent, TState>> {
+  ): Promise<Aggregate<TCommandHandler, TEventHandler, TState>> {
     const _id = id.toString('hex');
 
     let promise = this.cache.get(_id);
 
     if (!promise) {
       promise = (async () => {
-        const aggregate = new Aggregate<TCommand, TEvent, TState>(
+        const state = this.opts?.defaultState ? 
+          (this.opts.defaultState instanceof Function ? this.opts.defaultState() : this.opts.defaultState): null;
+
+        const aggregate = new Aggregate<TCommandHandler, TEventHandler, TState>(
           this.eventStore,
           this.commandHandlers,
           this.eventHandlers,
           id,
           0,
-          null as never,
+          state as never,
           this.opts,
         );
 
@@ -59,7 +63,10 @@ export class AggregateFactory<
         }
 
         return aggregate;
-      })();
+      })().catch(err => {
+        this.cache.delete(_id);
+        throw err;
+      });
 
       this.cache.set(_id, promise);
 

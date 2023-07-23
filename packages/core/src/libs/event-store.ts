@@ -1,18 +1,7 @@
 import { Joser } from '@scaleforge/joser';
 import { StorageAdapter } from './storage-adapter';
 import { Event, Snapshot } from './types';
-
-export interface EventStoreStreamReceiver {
-  stop(): Promise<void>;
-}
-
-export interface EventStoreStreamAdapter {
-  sendEvents(params: { events: Event[] }): Promise<void>;
-  receiveEvents(
-    stream: string,
-    handler: (event: Event) => Promise<void>
-  ): Promise<EventStoreStreamReceiver>;
-}
+import { StreamAdapter } from './stream-adapter';
 
 export type Serializer = {
   serialize: (value: unknown) => unknown;
@@ -24,7 +13,7 @@ export class EventStore {
 
   constructor(
     private readonly storageAdapter: StorageAdapter,
-    private readonly streamAdapter: EventStoreStreamAdapter,
+    private readonly streamAdapter: StreamAdapter,
     opts?: {
       serializer?: Serializer
     },
@@ -56,17 +45,16 @@ export class EventStore {
     return this.storageAdapter.listEvents(params);
   }
 
-  public async saveEvents(params: {
+  public async dispatchEvents(params: {
     aggregate: {
       id: Buffer;
       version: number;
     };
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
+    meta?: Event['meta']
   }) {
-    const events: Event[] = await Promise.all(params.events.map(async (event, index) => {
-      const streams = await this.storageAdapter.listStreams({ event: event.type });
-
+    const events: Event[] = params.events.map((event, index) => {
       return {
         ...event,
         aggregate: {
@@ -76,11 +64,11 @@ export class EventStore {
         body: this.serializer.serialize(event.body),
         meta: {
           ...event.meta,
-          streams,
+          ...params.meta,
         },
         timestamp: params.timestamp,
       };
-    }));
+    });
 
     await this.storageAdapter.saveEvents(params);
     await this.streamAdapter.sendEvents({ events });

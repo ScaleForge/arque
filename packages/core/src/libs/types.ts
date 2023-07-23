@@ -1,9 +1,13 @@
 import { EventId } from './event-id';
 
+export type EventMeta = {
+  __ctx?: Buffer;
+} & Record<string, unknown>;
+
 export type Event<
   TType extends number = number,
   TBody = unknown,
-  TMeta extends Record<string, unknown> = Record<string, unknown>,
+  TMeta extends EventMeta = EventMeta,
 > = {
   id: EventId;
   type: TType;
@@ -16,7 +20,7 @@ export type Event<
   timestamp: Date;
 };
 
-export type EventHandler<TEvent extends Event, TState> = {
+export type EventHandler<TEvent extends Event = Event, TState = unknown> = {
   type: TEvent['type'];
   handle(
     ctx: {
@@ -44,9 +48,9 @@ export type GeneratedEvent<TEvent extends Event> = Pick<
 > & Partial<Pick<TEvent, 'meta'>>;
 
 export type CommandHandler<
-  TCommand extends Command,
-  TEvent extends Event,
-  TState,
+  TCommand extends Command = Command,
+  TEvent extends Event = Event,
+  TState = unknown,
 > = {
   type: TCommand['type'];
   handle(
