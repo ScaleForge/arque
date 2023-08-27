@@ -1,4 +1,4 @@
-import { Event, StreamAdapter, StreamEvent, StreamReceiver } from '@arque/core';
+import { Event, StreamAdapter, StreamEvent, Subscriber } from '@arque/core';
 import { Kafka, Producer, logLevel } from 'kafkajs';
 import { serialize } from './libs/serialization';
 import { debug } from 'debug';
@@ -55,6 +55,10 @@ export class KafkaStreamAdapter implements StreamAdapter {
     this.producer().catch(err => {
       this.logger.error(`producer connection error: error=${err.message}`);
     });
+  }
+  
+  subscribe(_params: { stream: string; handle: (event: Event) => Promise<void>; }): Promise<Subscriber> {
+    throw new Error('Method not implemented.');
   }
 
   async close(): Promise<void> {
@@ -172,9 +176,5 @@ export class KafkaStreamAdapter implements StreamAdapter {
       topic: `${this.opts.prefix ?? 'arque'}.main`,
       messages,
     });
-  }
-
-  receiveEvents(_stream: string, _handler: (event: Event) => Promise<void>): Promise<StreamReceiver> {
-    throw new Error('Method not implemented.');
   }
 }

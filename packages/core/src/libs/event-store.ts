@@ -1,7 +1,8 @@
 import { Joser } from '@scaleforge/joser';
-import { StorageAdapter } from './storage-adapter';
 import { Event, Snapshot } from './types';
-import { StreamAdapter } from './stream-adapter';
+import { ConfigAdapter } from './adapters/config-adapter';
+import { StorageAdapter } from './adapters/storage-adapter';
+import { StreamAdapter } from './adapters/stream-adapter';
 
 export type Serializer = {
   serialize: (value: unknown) => unknown;
@@ -14,6 +15,7 @@ export class EventStore {
   constructor(
     private readonly storageAdapter: StorageAdapter,
     private readonly streamAdapter: StreamAdapter,
+    private readonly configAdapter: ConfigAdapter,
     opts?: {
       serializer?: Serializer
     },
@@ -72,5 +74,23 @@ export class EventStore {
 
     await this.storageAdapter.saveEvents(params);
     await this.streamAdapter.sendEvents({ events });
+  }
+
+  public async saveStream(params: {
+    name: string;
+    events: number[];
+  }) {
+    await this.configAdapter.saveStream(params);
+  }
+
+  public async listStreams(params: { event: number; }): Promise<string[]> {
+    return this.configAdapter.listStreams(params);
+  }
+
+  public async subscribe<T extends Event = Event>(params: {
+    stream: string;
+    handle: (event: T) => Promise<void>;
+  }) {
+    return this.streamAdapter.subscribe(params);
   }
 }

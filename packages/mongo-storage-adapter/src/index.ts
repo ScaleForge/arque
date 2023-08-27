@@ -1,6 +1,6 @@
-import { Event, StorageAdapter, Snapshot, AggregateVersionConflictError, Stream } from '@arque/core';
+import { Event, StorageAdapter, Snapshot, AggregateVersionConflictError } from '@arque/core';
 import mongoose, { Connection, ConnectOptions } from 'mongoose';
-import * as schema from './lib/schema';
+import * as schema from './libs/schema';
 import { backOff } from 'exponential-backoff';
 import debug from 'debug';
 import assert from 'assert';
@@ -50,13 +50,13 @@ export class MongoStorageAdapter implements StorageAdapter {
   }): Promise<void> {
     assert(params.aggregate.version > 0, 'aggregate version must be greater than 0');
 
-    const [Event, Aggregate] = await Promise.all([
+    const [EventModel, AggregateModel] = await Promise.all([
       this.model('Event'),
       this.model('Aggregate'),
     ]);
 
     await backOff(async () => {
-      const session = await Event.startSession();
+      const session = await EventModel.startSession();
 
       session.startTransaction({
         writeConcern: {
@@ -69,7 +69,7 @@ export class MongoStorageAdapter implements StorageAdapter {
       try {
         if (params.aggregate.version === 1) {
           try {
-            await Aggregate.create(
+            await AggregateModel.create(
               [
                 {
                   _id: params.aggregate.id,
@@ -87,7 +87,7 @@ export class MongoStorageAdapter implements StorageAdapter {
             throw err;
           }
         } else {
-          const { modifiedCount } = await Aggregate.updateOne(
+          const { modifiedCount } = await AggregateModel.updateOne(
             {
               _id: params.aggregate.id,
               version: params.aggregate.version - 1,
@@ -108,7 +108,7 @@ export class MongoStorageAdapter implements StorageAdapter {
           }
         }
 
-        await Event.insertMany(params.events.map((event, index) => ({
+        await EventModel.insertMany(params.events.map((event, index) => ({
           ...event,
           aggregate: {
             id: params.aggregate.id,
@@ -154,7 +154,6 @@ export class MongoStorageAdapter implements StorageAdapter {
       },
     });
   }
-  
 
   async listEvents<TEvent = Event>(params: { aggregate: { id: Buffer; version?: number; }; }): Promise<AsyncIterableIterator<TEvent>> {
     const Event = await this.model('Event');
@@ -226,44 +225,6 @@ export class MongoStorageAdapter implements StorageAdapter {
       state: snapshot['state'],
       timestamp: snapshot['timestamp'],
     };
-  }
-
-  async saveStream(params: Stream): Promise<void> {
-    const Stream = await this.model('Stream');
-
-    await Stream.updateOne({
-      name: params.name,
-    }, {
-      $set: {
-        events: params.events,
-      },
-    }, {
-      upsert: true,
-      writeConcern: {
-        w: 'majority',
-      },
-    });
-  }
-
-  async getStream(params: { name: string }): Promise<Stream | null> {
-    const Stream = await this.model('Stream');
-
-    const stream = await Stream.findOne({
-      name: params.name,
-    });
-
-    if (!stream) {
-      return null;
-    }
-
-    return {
-      name: stream['name'],
-      events: stream['events'],
-    };
-  }
-
-  listStreams(_params: { event: number; }): Promise<string[]> {
-    throw new Error('Method not implemented.');
   }
 
   async close(): Promise<void> {

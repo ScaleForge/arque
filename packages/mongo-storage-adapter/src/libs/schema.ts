@@ -47,13 +47,5 @@ const Snapshot = new Schema({
 });
 Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': 1 }, { unique: true });
 
-const Stream = new Schema({
-  name: String,
-  events: [Number],
-}, {
-  autoIndex: true,
-});
-Snapshot.index({ 'name': 1 }, { unique: true });
 
-
-export { Event, Aggregate, Snapshot, Stream };
+export { Event, Aggregate, Snapshot };

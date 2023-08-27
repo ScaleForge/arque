@@ -21,10 +21,9 @@ export type SnapshotOpts<TState = unknown> = {
 };
 
 export class Aggregate<
-  TState = unknown,
+  TState,
   TCommandHandler extends CommandHandler<Command, Event, TState> = CommandHandler<Command, Event, TState>,
   TEventHandler extends EventHandler<Event, TState> = EventHandler<Event, TState>,
-
 > {
   private mutex: Mutex;
 

@@ -1,6 +1,6 @@
-import { Event } from './types';
+import { Event } from '../types';
 
-export interface StreamReceiver {
+export interface Subscriber {
   stop(): Promise<void>;
 }
 
@@ -10,9 +10,11 @@ export type StreamEvent = Pick<Event, 'id' | 'type' | 'aggregate' | 'timestamp'>
 
 export interface StreamAdapter {
   sendEvents(params: { events: StreamEvent[] }): Promise<void>;
-  receiveEvents(
+
+  subscribe(params: {
     stream: string,
-    handler: (event: Event) => Promise<void>
-  ): Promise<StreamReceiver>;
+    handle: (event: Event) => Promise<void>
+  }): Promise<Subscriber>;
+  
   close(): Promise<void>;
 }

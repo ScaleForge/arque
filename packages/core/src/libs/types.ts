@@ -78,8 +78,3 @@ export type Snapshot<TState = unknown> = {
   state: TState;
   timestamp: Date;
 };
-
-export type Stream = {
-  name: string;
-  events: number[];
-};

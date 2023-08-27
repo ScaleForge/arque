@@ -1,4 +1,4 @@
-import { Event, Snapshot, Stream } from './types';
+import { Event, Snapshot } from '../types';
 
 export interface StorageAdapter {
   saveEvents(params: {
@@ -25,10 +25,6 @@ export interface StorageAdapter {
       version: number;
     };
   }): Promise<Snapshot<TState> | null>;
-
-  saveStream(params: Stream): Promise<void>;
-
-  listStreams(params: { event: number }): Promise<string[]>;
 
   close(): Promise<void>;
 }

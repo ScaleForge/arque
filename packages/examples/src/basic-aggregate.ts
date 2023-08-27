@@ -1,81 +1,42 @@
-import { AggregateFactory, EventStore, StorageAdapter, StreamAdapter, Event, Command, CommandHandler, EventHandler } from '@arque/core';
+import { AggregateFactory, EventStore } from '@arque/core';
 import { MongoStorageAdapter } from '@arque/mongo-storage-adapter';
 import { KafkaStreamAdapter } from '@arque/kafka-stream-adapter';
+import { MongoConfigAdapter } from '@arque/mongo-config-adapter';
 import { randomBytes } from 'crypto';
 import assert from 'assert';
+import {
+  EventType,
+  WalletAggregateCommandHandler,
+  WalletAggregateCommandType,
+  WalletAggregateEventHandler,
+  WalletAggregateState,
+} from './libs/common';
 
 const KAFKA_BROKERS = (process.env.KAFKA_BROKERS ?? 'localhost:9092,localhost:9093,localhost:9094').split(',');
 
 const MONGODB_URI = process.env.MONGODB_URI ?? 'mongodb://mongo1:27021,mongo2:27022,mongo3:27023/?replicaSet=rs0';
 
-enum EventType {
-  WalletDebited = 0,
-  WalletCredited = 1,
-}
-
-type WalletDebitedEvent = Event<EventType.WalletDebited, {
-  amount: number;
-  balance: number;
-}>;
-
-type WalletCreditedEvent = Event<EventType.WalletCredited, {
-  amount: number;
-  balance: number;
-}>;
-
-enum WalletAggregateCommandType {
-  Debit = 0,
-  Credit = 1,
-  AddTransaction = 2,
-}
-
-type WalletAggregateState = {
-  balance: number;
-};
-
-type WalletDebitCommandHandler = CommandHandler<
-  Command<WalletAggregateCommandType.Debit, [{ amount: number }]>,
-  WalletDebitedEvent,
-  WalletAggregateState
->;
-
-type WalletCreditCommandHandler = CommandHandler<
-  Command<WalletAggregateCommandType.Credit, [{ amount: number }]>,
-  WalletCreditedEvent,
-  WalletAggregateState
->;
-
-type WalletAddTransactionCommandHandler = CommandHandler<
-  Command<WalletAggregateCommandType.AddTransaction, [{ type: 'debit' | 'credit', amount: number }[]]>,
-  WalletDebitedEvent | WalletCreditedEvent,
-  WalletAggregateState
->;
-
-type WalletAggregateCommandHandler = WalletDebitCommandHandler | WalletCreditCommandHandler | WalletAddTransactionCommandHandler;
-
-type WalletDebitedEventHandler = EventHandler<WalletDebitedEvent, WalletAggregateState>;
-
-type WalletCreditedEventHandler = EventHandler<WalletCreditedEvent, WalletAggregateState>;
-
-type WalletAggregateEventHandler = WalletDebitedEventHandler | WalletCreditedEventHandler;
-
 async function main() {
-  const storage: StorageAdapter = new MongoStorageAdapter({
+  const storage = new MongoStorageAdapter({
     uri: MONGODB_URI,
   });
 
-  const stream: StreamAdapter = new KafkaStreamAdapter({
+  const stream = new KafkaStreamAdapter({
     brokers: KAFKA_BROKERS,
   });
 
-  const store = new EventStore(storage, stream);
+  const config = new MongoConfigAdapter({
+    uri: MONGODB_URI,
+  });
+
+  const store = new EventStore(storage, stream, config);
 
   const WalletAggregateFactory = new AggregateFactory<WalletAggregateState, WalletAggregateCommandHandler, WalletAggregateEventHandler>(
     store,
     [
       {
         type: WalletAggregateCommandType.Debit,
-        handle(ctx, _command, { amount }) {
+        handle(ctx, _, { amount }) {
           const balance = ctx.state.balance - amount;
 
           if (balance < 0) {
@@ -93,7 +54,7 @@ async function main() {
       },
       {
         type: WalletAggregateCommandType.Credit,
-        handle(ctx, _command, { amount }) {
+        handle(ctx, _, { amount }) {
           return {
             type: EventType.WalletCredited,
             body: {
@@ -104,15 +65,15 @@ async function main() {
         },
       },
       {
-        type: WalletAggregateCommandType.AddTransaction,
-        handle(ctx, _command, operations) {
+        type: WalletAggregateCommandType.CreateTransaction,
+        handle(ctx, _, operations) {
           const events = [];
 
           let balance = ctx.state.balance;
 
           for (const operation of operations) {
             if (operation.type === 'debit') {
-              balance -= operation.amount;
+              balance -= operation.params.amount;
 
               if (balance < 0) {
                 throw new Error('not enough balance');
@@ -121,7 +82,7 @@ async function main() {
               events.push({
                 type: EventType.WalletDebited,
                 body: {
-                  amount: operation.amount,
+                  amount: operation.params.amount,
                   balance,
                 },
               });
@@ -129,12 +90,12 @@ async function main() {
               continue;
             }
 
-            balance += operation.amount;
+            balance += operation.params.amount;
 
             events.push({
               type: EventType.WalletCredited,
               body: {
-                amount: operation.amount,
+                amount: operation.params.amount,
                 balance,
               },
             });
@@ -208,24 +169,32 @@ async function main() {
   });
 
   await aggregate.process({
-    type: WalletAggregateCommandType.AddTransaction,
+    type: WalletAggregateCommandType.CreateTransaction,
     args: [
       [
         {
           type: 'debit',
-          amount: 10,
+          params: {
+            amount: 10,
+          },
         },
         {
           type: 'credit',
-          amount: 5,
+          params: {
+            amount: 5,
+          },
         },
         {
           type: 'credit',
-          amount: 5,
+          params: {
+            amount: 5,
+          },
         },
         {
           type: 'debit',
-          amount: 15,
+          params: {
+            amount: 15,
+          },
         },
       ],
     ],

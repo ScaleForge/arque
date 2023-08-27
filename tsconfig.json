@@ -14,7 +14,8 @@
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
     "module": "commonjs",
-    "types": ["node"]
+    "types": ["node"],
+    "composite": true
   },
   "exclude": ["node_modules"]
 }

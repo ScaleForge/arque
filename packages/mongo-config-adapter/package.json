@@ -1,10 +1,14 @@
 {
-  "name": "@arque/examples",
-  "version": "0.1.0-alpha.1",
+  "name": "@arque/mongo-config-adapter",
+  "version": "0.1.0-alpha.0",
   "description": "The Event Sourcing library.",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleTechnologies/arque#README.md",
   "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ScaleTechnologies/arque.git"
@@ -13,13 +17,15 @@
     "url": "https://github.com/ScaleTechnologies/arque/issues"
   },
   "scripts": {
-    "examples:basic-aggregate": "DEBUG=* ts-node ./src/basic-aggregate.ts"
+    "test": "jest",
+    "build": "rimraf dist && tsc --project tsconfig.build.json",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "0.1.0-alpha.16",
-    "@arque/mongo-storage-adapter": "0.1.0-alpha.4",
-    "@arque/kafka-stream-adapter": "0.1.0-alpha.1",
-    "@arque/mongo-config-adapter": "0.1.0-alpha.0",
-    "debug": "4.3.4"
+    "@arque/core": "^0.1.0-alpha.16",
+    "mongoose": "7.4.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
