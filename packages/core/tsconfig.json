@@ -1,11 +1,6 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true
+    "types": [ "node", "jest"]
   },
-  "references": [
-    {
-      "path": "./tsconfig.test.json"
-    }
-  ]
 }

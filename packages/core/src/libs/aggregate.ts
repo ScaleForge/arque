@@ -2,22 +2,22 @@ import { Mutex } from 'async-mutex';
 import { backOff } from 'exponential-backoff';
 import assert from 'assert';
 import { Event, EventHandler, CommandHandler, Command } from './types';
-import { EventStore } from './event-store';
 import { EventId } from './event-id';
-import { AggregateVersionConflictError } from './error';
+import { AggregateVersionConflictError, StoreAdapter } from './adapters/store-adapter';
+import { StreamAdapter } from './adapters/stream-adapter';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractCommand<T> = T extends CommandHandler<infer Command, any, any> ? Command : never;
 
-export type SnapshotOpts<TState = unknown> = {
-  interval?: number;
-  shouldTakeSnapshot?: (ctx: {
+type AggregateOpts<TState> = {
+  readonly shouldTakeSnapshot?: (ctx: {
     aggregate: {
       id: Buffer;
       version: number;
     },
     state: TState;
   }) => boolean;
+  readonly snapshotInterval?: number;
 };
 
 export class Aggregate<
@@ -34,16 +34,17 @@ export class Aggregate<
 
   private eventHandlers: Map<number, TEventHandler>;
 
+  private opts: AggregateOpts<TState>;
+
   constructor(
-    private readonly eventStore: EventStore,
+    private readonly store: StoreAdapter,
+    private readonly stream: StreamAdapter,
     commandHandlers: TCommandHandler[],
     eventHandlers: TEventHandler[],
     private _id: Buffer,
     private _version: number,
     private _state: TState,
-    private readonly opts?: {
-      readonly snapshotOpts?: SnapshotOpts<TState>;
-    },
+    opts?: Partial<AggregateOpts<TState>>,
   ) {
     this.mutex = new Mutex();
 
@@ -54,6 +55,11 @@ export class Aggregate<
     this.eventHandlers = new Map(
       eventHandlers.map((item) => [item.type, item]),
     );
+
+    this.opts = {
+      snapshotInterval: 100,
+      ...opts,
+    };
   }
 
   get id() {
@@ -68,7 +74,7 @@ export class Aggregate<
     return this._state;
   }
 
-  private getCommandHandler(type: number) {
+  private commandHandler(type: number) {
     const handler = this.commandHandlers.get(type);
 
     assert(handler, `command handler does not exist: type=${type}`);
@@ -76,7 +82,7 @@ export class Aggregate<
     return handler;
   }
 
-  private getEventHandler(type: number) {
+  private eventHandler(type: number) {
     const handler = this.eventHandlers.get(type);
 
     assert(handler, `event handler does not exist: type=${type}`);
@@ -85,7 +91,7 @@ export class Aggregate<
   }
 
   private shoudTakeSnapshot() {
-    const { shouldTakeSnapshot, interval } = this.opts?.snapshotOpts || {};
+    const { shouldTakeSnapshot, snapshotInterval } = this.opts;
 
     if (shouldTakeSnapshot) {
       return shouldTakeSnapshot({
@@ -97,19 +103,14 @@ export class Aggregate<
       });
     }
 
-    return this.version % (interval || 100) === 0;
+    return this.version % snapshotInterval === 0;
   }
 
   private async digest(
     events: AsyncIterable<Event> | Array<Event>,
-    opts?: {
-      disableSnapshot?: true
-    },
   ) {
     for await (const event of events) {
-      const eventHandler = this.getEventHandler(event.type);
-
-      const state = await eventHandler.handle(
+      const state = await this.eventHandler(event.type).handle(
         {
           aggregate: {
             id: this.id,
@@ -122,79 +123,93 @@ export class Aggregate<
 
       this._state = state as TState;
       this._version = event.aggregate.version;
-      
-      if (!opts?.disableSnapshot && this.shoudTakeSnapshot()) {
-        await this.eventStore.saveSnapshot({
-          aggregate: {
-            id: this.id,
-            version: this.version,
-          },
-          state: this.state,
-          timestamp: event.timestamp,
-        });
-      }
     }
   }
 
-  private async _reload(
-    opts?: {
-      ignoreSnapshot?: true,
-    },
-  ) {
-    if (!opts?.ignoreSnapshot) {
-      const snapshot = await this.eventStore.getSnapshot<TState>({
-        aggregate: {
-          id: this.id,
-          version: this.version,
-        },
-      });
-
-      if (snapshot) {
-        this._state = snapshot.state;
-        this._version = snapshot.aggregate.version;
-      }
-    }
-
-    await this.digest(await this.eventStore.listEvents({
+  private async _reload() {
+    const snapshot = await this.store.findLatestSnapshot<TState>({
       aggregate: {
         id: this.id,
         version: this.version,
       },
-    }), {
-      disableSnapshot: true,
     });
+
+    if (snapshot) {
+      this._state = snapshot.state;
+      this._version = snapshot.aggregate.version;
+    }
+
+    await this.digest(await this.store.listEvents({
+      aggregate: {
+        id: this.id,
+        version: this.version,
+      },
+    }));
   }
 
-  public async reload(opts?: {
-    ignoreSnapshot?: true,
-  }) {
+  public async reload() {
     const release = await this.mutex.acquire();
 
     try {
-      await this._reload(opts);
+      await this._reload();
     } finally {
       release();
     }
   }
 
-  public async process(command: ExtractCommand<TCommandHandler>, opts?: {
+  private async dispatch(params: {
+    aggregate: {
+      id: Buffer;
+      version: number;
+    };
+    timestamp: Date;
+    events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
+  }, ctx?: Buffer) {
+    await this.store.saveEvents(params);
+
+    const events = params.events.map((item, index) => ({
+      ...item,
+      timestamp: params.timestamp,
+      aggregate: {
+        id: this.id,
+        version: this.version + index + 1,
+      },
+      meta: item.meta,
+    }));
+
+    await this.stream.sendEvents(events, ctx);
+
+    await this.digest(events);
+
+    if (this.shoudTakeSnapshot()) {
+      await this.store.saveSnapshot({
+        aggregate: {
+          id: this.id,
+          version: this.version,
+        },
+        state: this.state,
+        timestamp: params.timestamp,
+      });
+    }
+  }
+
+  public async process(command: ExtractCommand<TCommandHandler>, ctx?: Buffer, opts?: {
     noInitialReload?: true,
-    ignoreSnapshot?: true,
     maxRetries?: number,
   }): Promise<void> {
-    await backOff(async () => {
-      const release = await this.mutex.acquire();
+    const handler = this.commandHandler(command.type);
 
-      try {
-        if (!opts?.noInitialReload) {
-          await this._reload(opts);
-        }
+    const release = await this.mutex.acquire();
 
-        const commandHandler = this.getCommandHandler(command.type);
+    try {
+      if (!opts?.noInitialReload) {
+        await this._reload();
+      }
 
+      await backOff(async () => {
         const timestamp = new Date();
-
-        const _events = await commandHandler.handle(
+  
+        const event = await handler.handle(
           {
             aggregate: {
               id: this.id,
@@ -206,45 +221,32 @@ export class Aggregate<
           ...command.args,
         );
 
-        const events = (_events instanceof Array ? _events : [_events]).map((item, index) => ({
-          ...item,
-          id: new EventId(),
-          timestamp,
-          aggregate: {
-            id: this.id,
-            version: this.version + index + 1,
-          },
-          meta: item.meta ?? {},
-        }));
-
-        await this.eventStore.dispatchEvents({
+        await this.dispatch({
           aggregate: {
             id: this.id,
             version: this.version + 1,
           },
-          events: events.map(item => ({
-            id: item.id,
+          events: (event instanceof Array ? event : [event]).map(item => ({
+            id: EventId.generate(),
             type: item.type,
             body: item.body,
             meta: item.meta,
           })),
           timestamp,
-        });
-
-        await this.digest(events);
-      } finally {
-        release();
-      }
-    }, {
-      delayFirstAttempt: false,
-      jitter: 'full',
-      maxDelay: 2000,
-      numOfAttempts: opts?.maxRetries || 10,
-      startingDelay: 100,
-      timeMultiple: 2,
-      retry(err) {
-        return err instanceof AggregateVersionConflictError;
-      },
-    });
+        }, ctx);
+      }, {
+        delayFirstAttempt: false,
+        jitter: 'full',
+        maxDelay: 1600,
+        numOfAttempts: opts?.maxRetries ?? 10,
+        startingDelay: 100,
+        timeMultiple: 2,
+        retry(err) {
+          return err instanceof AggregateVersionConflictError;
+        },
+      });
+    } finally{
+      release();
+    }
   }
 }

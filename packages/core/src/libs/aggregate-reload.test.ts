@@ -1,42 +1,38 @@
 import { randomBytes } from 'crypto';
 import R from 'ramda';
-import { Event, EventHandler, Command, CommandHandler } from './types';
 import { EventId } from './event-id';
+import { Event, EventHandler } from './types';
+import { arrayToAsyncIterableIterator } from './util';
 import { Aggregate } from './aggregate';
-import { EventStore } from './event-store';
-import { arrayToAsyncIterableIterator } from '../../__tests__/helpers';
 
 enum EventType {
-  BalanceUpdated = 0,
+  BalanceUpdated = 0 || 1 << 8,
 }
+
+type BalanceAggregateState = { balance: number };
 
 type BalanceUpdatedEvent = Event<
   EventType.BalanceUpdated,
   { balance: number; amount: number }
 >;
 
-type BalanceAggregateState = { balance: number };
-
-type BalanceAggregateCommandHandler = CommandHandler<Command<number, number[]>, BalanceUpdatedEvent, BalanceAggregateState>;
-
-type BalanceAggregateEventHandler = EventHandler<BalanceUpdatedEvent, BalanceAggregateState>;
+const BalanceUpdateEventHandler: EventHandler<BalanceUpdatedEvent, BalanceAggregateState> = {
+  type: EventType.BalanceUpdated,
+  handle(_, event: BalanceUpdatedEvent) {
+    return {
+      balance: event.body.balance,
+    };
+  },
+};
 
 describe('Aggregate#reload', () => {
-  const handler: BalanceAggregateEventHandler = {
-    type: EventType.BalanceUpdated,
-    handle(_, event: BalanceUpdatedEvent) {
-      return {
-        balance: event.body.balance,
-      };
-    },
-  };
-
   test.concurrent('reload', async () => {
     const id = randomBytes(13);
     const amount = 10;
     const timestamp = new Date();
+
     const events = R.times((index) => ({
-      id: new EventId(),
+      id: EventId.generate(),
       type: EventType.BalanceUpdated,
       aggregate: {
         id,
@@ -44,151 +40,144 @@ describe('Aggregate#reload', () => {
       },
       body: { balance: (index + 1) * amount, amount },
       timestamp,
+      meta: {},
     }), 10);
 
-    const EventStoreMock = {
+    const store = {
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator(events)),
-      getSnapshot: jest.fn().mockResolvedValue(null),
+      findLatestSnapshot: jest.fn().mockResolvedValue(null),
     };
 
-    const aggregate = new Aggregate<
-      BalanceAggregateState,
-      BalanceAggregateCommandHandler,
-      BalanceAggregateEventHandler
-    >(
-      EventStoreMock as never as EventStore,
+    const aggregate = new Aggregate(
+      store as never,
+      {} as never,
       [],
-      [handler],
+      [BalanceUpdateEventHandler],
       id,
       0,
-      { balance: 0 }
+      { balance: 0 },
     );
 
     await aggregate.reload();
 
-    expect(EventStoreMock.listEvents).toBeCalledWith({
-      aggregate: {
-        id,
-        version: 0,
-      },
-    });
-    expect(EventStoreMock.getSnapshot).toBeCalledWith({
-      aggregate: {
-        id,
-        version: 0,
-      },
-    });
     expect(aggregate.state).toEqual({ balance: events.length * amount });
     expect(aggregate.version).toEqual(events.length);
+    expect(store.listEvents).toBeCalledWith({
+      aggregate: {
+        id,
+        version: 0,
+      },
+    });
+    expect(store.findLatestSnapshot).toBeCalledWith({
+      aggregate: {
+        id,
+        version: 0,
+      },
+    });
   });
 
-  test.concurrent('reload multiple times, concurrently', async () => {
+  test.concurrent('snapshot', async () => {
     const id = randomBytes(13);
     const amount = 10;
-
-    const generateEvents = (offset: number) => {
-      const timestamp = new Date();
-
-      return R.times(
-        (index) => ({
-          id: new EventId(),
-          type: EventType.BalanceUpdated,
-          aggregate: {
-            id: id.buffer,
-            version: offset + index + 1,
-          },
-          body: { balance: (offset + index + 1) * amount, amount },
-          timestamp,
-        }),
-        10
-      );
-    };
-
-    const EventStoreMock = {
-      listEvents: jest
-        .fn()
-        .mockImplementationOnce(async () => generateEvents(0))
-        .mockImplementationOnce(async () => generateEvents(10))
-        .mockImplementationOnce(async () => generateEvents(20)),
-      getSnapshot: jest.fn().mockResolvedValue(null),
-    };
-
-    const aggregate = new Aggregate<
-      BalanceAggregateState,
-      BalanceAggregateCommandHandler,
-      BalanceAggregateEventHandler
-    >(
-      EventStoreMock as never as EventStore,
-      [],
-      [handler],
-      id,
-      0,
-      { balance: 0 }
-    );
-
-    await Promise.all(R.times(() => aggregate.reload(), 3));
-
-    expect(EventStoreMock.listEvents).toBeCalledTimes(3);
-    expect(EventStoreMock.getSnapshot).toBeCalledTimes(3);
-    expect(aggregate.state).toEqual({ balance: 30 * amount });
-    expect(aggregate.version).toEqual(30);
-  });
-
-  test.concurrent('reload with snapshot', async () => {
     const timestamp = new Date();
-    const id = randomBytes(13);
-    const amount = 10;
+
     const events = R.times((index) => ({
-      id: new EventId(),
+      id: EventId.generate(),
       type: EventType.BalanceUpdated,
       aggregate: {
         id,
-        version: 10 + index + 1,
+        version: index + 6,
       },
-      body: { balance: 1000 + (index + 1) * amount, amount },
+      body: { balance: (index + 6) * amount, amount },
       timestamp,
-    }), 10);
+      meta: {},
+    }), 5);
 
-    const EventStoreMock = {
+    const store = {
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator(events)),
-      getSnapshot: jest.fn().mockResolvedValue({
+      findLatestSnapshot: jest.fn().mockResolvedValue({
         aggregate: {
           id,
-          version: 10,
+          version: 5,
         },
-        state: { balance: 1000 },
+        state: {
+          balance: 50,
+        },
         timestamp,
       }),
     };
 
-    const aggregate = new Aggregate<
-      BalanceAggregateState,
-      BalanceAggregateCommandHandler,
-      BalanceAggregateEventHandler
-    >(
-      EventStoreMock as never as EventStore,
+    const aggregate = new Aggregate(
+      store as never,
+      {} as never,
       [],
-      [handler],
+      [BalanceUpdateEventHandler],
       id,
       0,
-      { balance: 0 }
+      { balance: 0 },
     );
 
     await aggregate.reload();
 
-    expect(EventStoreMock.listEvents).toBeCalledWith({
+    expect(aggregate.state).toEqual({ balance: 50 + events.length * amount });
+    expect(aggregate.version).toEqual(events.length + 5);
+    expect(store.listEvents).toBeCalledWith({
       aggregate: {
         id,
-        version: 10,
+        version: 5,
       },
     });
-    expect(EventStoreMock.getSnapshot).toBeCalledWith({
+    expect(store.findLatestSnapshot).toBeCalledWith({
       aggregate: {
         id,
         version: 0,
       },
     });
-    expect(aggregate.state).toEqual({ balance: events.length * amount + 1000 });
-    expect(aggregate.version).toEqual(events.length + 10);
+  });
+
+  test.concurrent('multiple concurrent reloads', async () => {
+    const id = randomBytes(13);
+    const amount = 10;
+    const timestamp = new Date();
+
+    const events = R.times((index) => ({
+      id: EventId.generate(),
+      type: EventType.BalanceUpdated,
+      aggregate: {
+        id,
+        version: index + 1,
+      },
+      body: { balance: (index + 1) * amount, amount },
+      timestamp,
+      meta: {},
+    }), 15);
+
+    const store = {
+      listEvents: jest.fn(async ({ aggregate: { version } }) => arrayToAsyncIterableIterator(events.slice(version))),
+      findLatestSnapshot: jest.fn().mockResolvedValue(null),
+    };
+
+    const aggregate = new Aggregate(
+      store as never,
+      {} as never,
+      [],
+      [BalanceUpdateEventHandler],
+      id,
+      0,
+      { balance: 0 },
+    );
+
+    await Promise.all([
+      aggregate.reload(),
+      aggregate.reload(),
+      aggregate.reload(),
+      aggregate.reload(),
+      aggregate.reload(),
+    ]);
+
+    expect(aggregate.state).toEqual({ balance: events.length * amount });
+    expect(aggregate.version).toEqual(events.length);
+    expect(store.listEvents).toBeCalledTimes(5);
+    expect(store.findLatestSnapshot).toBeCalledTimes(5);
   });
 });

@@ -1,7 +1,7 @@
 {
   "name": "@arque/core",
   "version": "0.1.0-alpha.16",
-  "description": "The Event Sourcing library.",
+  "description": "`arque` core library",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleTechnologies/arque#README.md",
   "license": "MIT",
@@ -26,10 +26,9 @@
     "async-mutex": "0.4.0",
     "bs58": "5.0.0",
     "exponential-backoff": "3.1.1",
-    "lru-cache": "9.1.1"
+    "lru-cache": "10.0.1"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "gitHead": "8ca63b1c78121876fd12f6eeeb2267f94d7af22c"
+  }
 }

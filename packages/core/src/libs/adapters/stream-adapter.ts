@@ -4,12 +4,8 @@ export interface Subscriber {
   stop(): Promise<void>;
 }
 
-export type StreamEvent = Pick<Event, 'id' | 'type' | 'aggregate' | 'timestamp'> & { meta: {
-  __ctx?: Buffer;
-} };
-
 export interface StreamAdapter {
-  sendEvents(params: { events: StreamEvent[] }): Promise<void>;
+  sendEvents(events: Event[], ctx?: Buffer): Promise<void>;
 
   subscribe(params: {
     stream: string,

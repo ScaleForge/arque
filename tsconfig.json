@@ -1,5 +1,4 @@
 {
-  "compileOnSave": false,
   "compilerOptions": {
     "sourceMap": true,
     "declaration": true,
@@ -14,8 +13,6 @@
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
     "module": "commonjs",
-    "types": ["node"],
-    "composite": true
-  },
-  "exclude": ["node_modules"]
+    "types": ["node"]
+  }
 }

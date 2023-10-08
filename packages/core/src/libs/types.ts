@@ -1,13 +1,13 @@
 import { EventId } from './event-id';
 
-export type EventMeta = {
+export type Meta<T extends Record<string, unknown> = Record<string, unknown>> = {
   __ctx?: Buffer;
-} & Record<string, unknown>;
+} & T;
 
 export type Event<
   TType extends number = number,
-  TBody = unknown,
-  TMeta extends EventMeta = EventMeta,
+  TBody = Record<string, unknown>,
+  TMeta extends Meta = Meta,
 > = {
   id: EventId;
   type: TType;
@@ -24,11 +24,11 @@ export type EventHandler<TEvent extends Event = Event, TState = unknown> = {
   type: TEvent['type'];
   handle(
     ctx: {
-      aggregate: {
-        id: Buffer;
-        version: number;
+      readonly aggregate: {
+        readonly id: Buffer;
+        readonly version: number;
       },
-      state: TState;
+      readonly state: TState;
     },
     event: TEvent
   ): TState | Promise<TState>;
@@ -55,11 +55,11 @@ export type CommandHandler<
   type: TCommand['type'];
   handle(
     ctx: {
-      aggregate: {
-        id: Buffer;
-        version: number;
+      readonly aggregate: {
+        readonly id: Buffer;
+        readonly version: number;
       },
-      state: TState;
+      readonly state: TState;
     },
     command: TCommand,
     ...args: TCommand['args']
@@ -70,11 +70,7 @@ export type CommandHandler<
     | Promise<GeneratedEvent<TEvent>[]>;
 };
 
-export type Snapshot<TState = unknown> = {
-  aggregate: {
-    id: Buffer;
-    version: number;
-  };
-  state: TState;
-  timestamp: Date;
+export type ProjectionEventHandler<TEvent extends Event = Event, TState = unknown> = {
+  type: TEvent['type'];
+  handle(ctx: { readonly state: TState }, event: TEvent): void | Promise<void>;
 };

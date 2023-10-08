@@ -1,16 +1,16 @@
 export type Stream = {
-  name: string;
+  id: string;
   events: number[];
 };
 
 export interface ConfigAdapter {
   saveStream(params: Stream): Promise<void>;
 
-  getStream(params: {
-    name: string;
+  findStream(params: {
+    id: string;
   }): Promise<Stream | null>;
 
-  listStreams(params: { event: number }): Promise<string[]>;
+  findStreams(params: { event: number }): Promise<Stream[]>;
 
   close(): Promise<void>;
 }
