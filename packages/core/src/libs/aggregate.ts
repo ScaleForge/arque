@@ -21,7 +21,7 @@ export type AggregateOpts<TState> = {
 };
 
 export class Aggregate<
-  TState,
+  TState = unknown,
   TCommandHandler extends CommandHandler<Command, Event, TState> = CommandHandler<Command, Event, TState>,
   TEventHandler extends EventHandler<Event, TState> = EventHandler<Event, TState>,
 > {

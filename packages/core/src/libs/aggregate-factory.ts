@@ -1,29 +1,28 @@
 import { LRUCache } from 'lru-cache';
 import { Aggregate, AggregateOpts } from './aggregate';
-import { Command, CommandHandler, Event, EventHandler } from './types';
 import { StoreAdapter } from './adapters/store-adapter';
 import { StreamAdapter } from './adapters/stream-adapter';
 
-export class AggregateFactory<
-  TState = unknown,
-  TCommandHandler extends CommandHandler<Command, Event, TState> = CommandHandler<Command, Event, TState>,
-  TEventHandler extends EventHandler<Event, TState> = EventHandler<Event, TState>,
-> {
+type ExtractState<T> = T extends Aggregate<infer State, never, never> ? State : never;
+type ExtractCommandHandler<T> = T extends Aggregate<never, infer CommandHandler, never> ? CommandHandler : never;
+type ExtractEventHandler<T> = T extends Aggregate<never, never, infer EventHandler> ? EventHandler : never;
+
+export class AggregateFactory<T extends Aggregate> {
   private cache: LRUCache<
     string,
-    Promise<Aggregate<TState, TCommandHandler, TEventHandler>>
+    Promise<T>
   >;
 
   constructor(
     private readonly store: StoreAdapter,
     private readonly stream: StreamAdapter,
-    private commandHandlers: TCommandHandler[],
-    private eventHandlers: TEventHandler[],
+    private commandHandlers: ExtractCommandHandler<T>[],
+    private eventHandlers: ExtractEventHandler<T>[],
     private readonly opts: {
-      readonly defaultState?: TState | (() => TState);
+      readonly defaultState?: ExtractState<T> | (() => ExtractState<T>);
       readonly cacheMax?: number;
       readonly cacheTTL?: number;
-    } & Partial<AggregateOpts<TState>>,
+    } & Partial<AggregateOpts<ExtractState<T>>>,
   ) {
     this.cache = new LRUCache({
       max: opts.cacheMax || 1000,
@@ -37,7 +36,7 @@ export class AggregateFactory<
       noReload?: true,
       reloadIfOlderThan?: number,
     }
-  ): Promise<Aggregate<TState, TCommandHandler, TEventHandler>> {
+  ): Promise<T> {
     const _id = id.toString('base64');
 
     let promise = this.cache.get(_id);
@@ -47,7 +46,7 @@ export class AggregateFactory<
         const state = this.opts.defaultState ? 
           (this.opts.defaultState instanceof Function ? this.opts.defaultState() : this.opts.defaultState): null;
 
-        const aggregate = new Aggregate<TState, TCommandHandler, TEventHandler>(
+        const aggregate = new Aggregate(
           this.store,
           this.stream,
           this.commandHandlers,
@@ -59,7 +58,7 @@ export class AggregateFactory<
             shouldTakeSnapshot: this.opts.shouldTakeSnapshot,
             snapshotInterval: this.opts.snapshotInterval,
           },
-        );
+        ) as never as T;
 
         if (!opts?.noReload) {
           await aggregate.reload();
