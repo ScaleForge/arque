@@ -9,7 +9,7 @@ import { StreamAdapter } from './adapters/stream-adapter';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractCommand<T> = T extends CommandHandler<infer Command, any, any> ? Command : never;
 
-type AggregateOpts<TState> = {
+export type AggregateOpts<TState> = {
   readonly shouldTakeSnapshot?: (ctx: {
     aggregate: {
       id: Buffer;
