@@ -25,7 +25,7 @@ export class AggregateFactory<T extends Aggregate> {
     } & Partial<AggregateOpts<ExtractState<T>>>,
   ) {
     this.cache = new LRUCache({
-      max: opts.cacheMax || 1000,
+      max: opts.cacheMax || 256,
       ttl: opts.cacheTTL || 86400000, // 24 hours
     });
   }
@@ -34,7 +34,6 @@ export class AggregateFactory<T extends Aggregate> {
     id: Buffer,
     opts?: {
       noReload?: true,
-      reloadIfOlderThan?: number,
     }
   ): Promise<T> {
     const _id = id.toString('base64');

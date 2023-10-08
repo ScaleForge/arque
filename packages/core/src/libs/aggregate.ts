@@ -36,6 +36,8 @@ export class Aggregate<
 
   private opts: AggregateOpts<TState>;
 
+  private _lastEvent: Event | null = null;
+
   constructor(
     private readonly store: StoreAdapter,
     private readonly stream: StreamAdapter,
@@ -72,6 +74,10 @@ export class Aggregate<
 
   get state() {
     return this._state;
+  }
+
+  get lastEvent() {
+    return this._lastEvent;
   }
 
   private commandHandler(type: number) {
@@ -123,6 +129,7 @@ export class Aggregate<
 
       this._state = state as TState;
       this._version = event.aggregate.version;
+      this._lastEvent = event;
     }
   }
 
@@ -230,7 +237,7 @@ export class Aggregate<
             id: EventId.generate(),
             type: item.type,
             body: item.body,
-            meta: item.meta,
+            meta: item.meta ?? {},
           })),
           timestamp,
         }, ctx);

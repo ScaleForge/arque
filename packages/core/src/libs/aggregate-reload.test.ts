@@ -16,7 +16,7 @@ type BalanceUpdatedEvent = Event<
   { balance: number; amount: number }
 >;
 
-const BalanceUpdateEventHandler: EventHandler<BalanceUpdatedEvent, BalanceAggregateState> = {
+const BalanceUpdatedEventHandler: EventHandler<BalanceUpdatedEvent, BalanceAggregateState> = {
   type: EventType.BalanceUpdated,
   handle(_, event: BalanceUpdatedEvent) {
     return {
@@ -52,7 +52,7 @@ describe('Aggregate#reload', () => {
       store as never,
       {} as never,
       [],
-      [BalanceUpdateEventHandler],
+      [BalanceUpdatedEventHandler],
       id,
       0,
       { balance: 0 },
@@ -111,7 +111,7 @@ describe('Aggregate#reload', () => {
       store as never,
       {} as never,
       [],
-      [BalanceUpdateEventHandler],
+      [BalanceUpdatedEventHandler],
       id,
       0,
       { balance: 0 },
@@ -161,7 +161,7 @@ describe('Aggregate#reload', () => {
       store as never,
       {} as never,
       [],
-      [BalanceUpdateEventHandler],
+      [BalanceUpdatedEventHandler],
       id,
       0,
       { balance: 0 },
