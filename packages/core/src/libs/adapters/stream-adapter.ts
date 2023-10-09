@@ -5,7 +5,7 @@ export interface Subscriber {
 }
 
 export interface StreamAdapter {
-  sendEvents(events: Event[], ctx?: Buffer): Promise<void>;
+  sendEvents(events: Event[], stream: string, ctx?: Buffer): Promise<void>;
 
   subscribe(params: {
     stream: string,

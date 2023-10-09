@@ -6,11 +6,6 @@ import { Joser, Serializer } from '@scaleforge/joser';
 import debug from 'debug';
 import assert from 'assert';
 
-const logger = {
-  warn: debug('MongoStoreAdapter:warn'),
-  error: debug('MongoStoreAdapter:error'),
-};
-
 type Options = {
   readonly uri: string;
   readonly retryStartingDelay: number;
@@ -19,6 +14,13 @@ type Options = {
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
 export class MongoStoreAdapter implements StoreAdapter {
+  private readonly logger = {
+    info: debug('MongoStoreAdapter:info'),
+    error: debug('MongoStoreAdapter:error'),
+    warn: debug('MongoStoreAdapter:warn'),
+    verbose: debug('MongoStoreAdapter:verbose'),
+  };
+
   private readonly joser: Joser;
 
   private readonly opts: Options;
@@ -93,6 +95,8 @@ export class MongoStoreAdapter implements StoreAdapter {
       this.model('Event'),
       this.model('Aggregate'),
     ]);
+
+    const { logger } = this;
 
     await backOff(async () => {
       const session = await EventModel.startSession();

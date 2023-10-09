@@ -184,7 +184,7 @@ export class Aggregate<
       meta: item.meta,
     }));
 
-    await this.stream.sendEvents(events, ctx);
+    await this.stream.sendEvents(events, 'main', ctx);
 
     await this.digest(events);
 

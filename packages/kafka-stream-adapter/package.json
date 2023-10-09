@@ -1,0 +1,35 @@
+{
+  "name": "@arque/kafka-stream-adapter",
+  "version": "0.1.0-alpha.1",
+  "description": "The Event Sourcing library.",
+  "author": "ScaleForge",
+  "homepage": "https://github.com/ScaleForge/arque#README.md",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ScaleForge/arque.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ScaleForge/arque/issues"
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "rimraf dist && tsc --project tsconfig.build.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@arque/core": "0.1.0-alpha.16",
+    "@scaleforge/joser": "~0.4.0",
+    "debug": "~4.3.4",
+    "flatbuffers": "~23.5.26",
+    "kafkajs": "~2.2.4",
+    "ohash": "~1.1.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
