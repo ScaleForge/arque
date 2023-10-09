@@ -17,7 +17,6 @@
     "url": "https://github.com/ScaleForge/arque/issues"
   },
   "scripts": {
-    "test": "jest",
     "build": "rimraf dist && tsc --project tsconfig.build.json",
     "prepublishOnly": "npm run build"
   },
