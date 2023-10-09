@@ -60,13 +60,13 @@ importers:
   examples:
     dependencies:
       '@arque/core':
-        specifier: 0.2.0-alpha.0
+        specifier: ^0.2.0-alpha.1
         version: link:../packages/core
       '@arque/kafka-stream-adapter':
-        specifier: 0.2.0-alpha.0
+        specifier: ^0.2.0-alpha.1
         version: link:../packages/kafka-stream-adapter
       '@arque/mongo-store-adapter':
-        specifier: 0.2.0-alpha.0
+        specifier: ^0.2.0-alpha.1
         version: link:../packages/mongo-store-adapter
       debug:
         specifier: 4.3.4
@@ -90,58 +90,58 @@ importers:
   packages/kafka-stream-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.0-alpha.0
+        specifier: ^0.2.0-alpha.1
         version: link:../core
       '@scaleforge/joser':
-        specifier: ~0.4.0
+        specifier: 0.4.0
         version: 0.4.0
       debug:
-        specifier: ~4.3.4
+        specifier: 4.3.4
         version: 4.3.4
       flatbuffers:
-        specifier: ~23.5.26
+        specifier: 23.5.26
         version: 23.5.26
       kafkajs:
-        specifier: ~2.2.4
+        specifier: 2.2.4
         version: 2.2.4
       ohash:
-        specifier: ~1.1.3
+        specifier: 1.1.3
         version: 1.1.3
 
   packages/mongo-config-adapter:
     dependencies:
       '@arque/core':
-        specifier: ~0.2.0-alpha.0
+        specifier: ^0.2.0-alpha.1
         version: link:../core
       debug:
-        specifier: ~4.3.4
+        specifier: 4.3.4
         version: 4.3.4
       lru-cache:
         specifier: 10.0.1
         version: 10.0.1
       mongoose:
-        specifier: ~7.6.0
+        specifier: 7.6.0
         version: 7.6.0
 
   packages/mongo-store-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.0-alpha.0
+        specifier: ^0.2.0-alpha.1
         version: link:../core
       '@scaleforge/joser':
-        specifier: ~0.4.0
+        specifier: 0.4.0
         version: 0.4.0
       debug:
-        specifier: ~4.3.4
+        specifier: 4.3.4
         version: 4.3.4
       decimal.js:
-        specifier: ~10.4.3
+        specifier: 10.4.3
         version: 10.4.3
       exponential-backoff:
-        specifier: ~3.1.1
+        specifier: 3.1.1
         version: 3.1.1
       mongoose:
-        specifier: ~7.6.0
+        specifier: 7.6.0
         version: 7.6.0
 
 packages:
