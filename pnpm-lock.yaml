@@ -75,7 +75,7 @@ importers:
   packages/kafka-stream-adapter:
     dependencies:
       '@arque/core':
-        specifier: 0.1.0-alpha.16
+        specifier: ^0.2.0-alpha.0
         version: link:../core
       '@scaleforge/joser':
         specifier: ~0.4.0
@@ -96,7 +96,7 @@ importers:
   packages/mongo-store-adapter:
     dependencies:
       '@arque/core':
-        specifier: ~0.1.0-alpha.16
+        specifier: ^0.2.0-alpha.0
         version: link:../core
       '@scaleforge/joser':
         specifier: ~0.4.0
