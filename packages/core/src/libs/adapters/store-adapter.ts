@@ -26,7 +26,6 @@ export interface StoreAdapter {
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
     meta?: Event['meta'];
-    ctx?: Buffer;
   }): Promise<void>;
 
   listEvents<TEvent = Event>(params: {
