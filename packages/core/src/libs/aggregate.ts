@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Mutex } from 'async-mutex';
 import { backOff } from 'exponential-backoff';
 import assert from 'assert';
@@ -6,7 +7,6 @@ import { EventId } from './event-id';
 import { AggregateVersionConflictError, StoreAdapter } from './adapters/store-adapter';
 import { StreamAdapter } from './adapters/stream-adapter';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractCommand<T> = T extends CommandHandler<infer Command, any, any> ? Command : never;
 
 export type AggregateOpts<TState> = {
@@ -208,12 +208,16 @@ export class Aggregate<
 
     const release = await this.mutex.acquire();
 
-    try {
-      if (!opts?.noInitialReload) {
-        await this._reload();
-      }
+    let firstRun = true;
 
+    try {
       await backOff(async () => {
+        if (!firstRun || !opts?.noInitialReload) {
+          await this._reload();
+        }
+
+        firstRun = false;
+
         const timestamp = new Date();
   
         const event = await handler.handle(

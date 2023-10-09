@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LRUCache } from 'lru-cache';
 import { Aggregate, AggregateOpts } from './aggregate';
 import { StoreAdapter } from './adapters/store-adapter';
 import { StreamAdapter } from './adapters/stream-adapter';
 
-type ExtractState<T> = T extends Aggregate<infer State, never, never> ? State : never;
-type ExtractCommandHandler<T> = T extends Aggregate<never, infer CommandHandler, never> ? CommandHandler : never;
-type ExtractEventHandler<T> = T extends Aggregate<never, never, infer EventHandler> ? EventHandler : never;
+type ExtractState<T> = T extends Aggregate<infer State, any, any> ? State : never;
+type ExtractCommandHandler<T> = T extends Aggregate<any, infer CommandHandler, any> ? CommandHandler : never;
+type ExtractEventHandler<T> = T extends Aggregate<any, any, infer EventHandler> ? EventHandler : never;
 
 export class AggregateFactory<T extends Aggregate> {
   private cache: LRUCache<
