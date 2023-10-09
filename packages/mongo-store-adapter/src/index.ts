@@ -204,16 +204,6 @@ export class MongoStoreAdapter implements StoreAdapter {
     });
   }
 
-  saveSnapshot(params: Snapshot<unknown>): Promise<void> {
-    console.log(params);
-    throw new Error('Method not implemented.');
-  }
-
-  findLatestSnapshot<TState = unknown>(params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<TState>> {
-    console.log(params);
-    throw new Error('Method not implemented.');
-  }
-
   async listEvents<TEvent = Event>(params: { aggregate: { id: Buffer; version?: number; }; }): Promise<AsyncIterableIterator<TEvent>> {
     const EventModel = await this.model('Event');
 
@@ -254,20 +244,23 @@ export class MongoStoreAdapter implements StoreAdapter {
       },
     } as never;
   }
-  /**
-  async saveSnapshot<TState = unknown>(params: Snapshot<TState>): Promise<void> {
-    const Snapshot = await this.model('Snapshot');
 
-    await Snapshot.create([params], {
+  async saveSnapshot(params: Snapshot) {
+    const SnapshotModel = await this.model('Snapshot');
+
+    await SnapshotModel.create({
+      ...params,
+      state: this.joser.serialize(params.state as never),
+    }, {
       validateBeforeSave: false,
       w: 1,
     });
   }
 
-  async getSnapshot<TState = unknown>(params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<TState> | null> {
-    const Snapshot = await this.model('Snapshot');
+  async findLatestSnapshot<T = unknown>(params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<T> | null> {
+    const SnapshotModel = await this.model('Snapshot');
 
-    const snapshot = await Snapshot.findOne({
+    const snapshot = await SnapshotModel.findOne({
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gt: params.aggregate.version },
     }).sort({
@@ -283,11 +276,11 @@ export class MongoStoreAdapter implements StoreAdapter {
         id: Buffer.from(snapshot['aggregate']['id']),
         version: snapshot['aggregate']['version'],
       },
-      state: snapshot['state'],
+      state: this.joser.deserialize(snapshot['state']) as T,
       timestamp: snapshot['timestamp'],
     };
   }
-   */
+
   async close(): Promise<void> {
     if (this.connectionPromise) {
       const connection = await this.connectionPromise;
