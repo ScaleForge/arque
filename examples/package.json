@@ -1,6 +1,4 @@
 {
-  "name": "@arque/examples",
-  "version": "0.2.1",
   "scripts": {
     "example:basic-aggregate": "DEBUG=* ts-node ./src/basic-aggregate.ts"
   },
@@ -9,5 +7,6 @@
     "@arque/kafka-stream-adapter": "^0.2.0-alpha.1",
     "@arque/mongo-store-adapter": "^0.2.0-alpha.1",
     "debug": "4.3.4"
-  }
+  },
+  "private": true
 }
