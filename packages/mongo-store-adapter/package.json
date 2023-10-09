@@ -1,7 +1,6 @@
 {
   "name": "@arque/mongo-store-adapter",
   "version": "0.2.0-alpha.0",
-  "description": "The Event Sourcing library.",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
   "license": "MIT",
@@ -22,15 +21,14 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "^0.2.0-alpha.0",
-    "@scaleforge/joser": "~0.4.0",
-    "debug": "~4.3.4",
-    "decimal.js": "~10.4.3",
-    "exponential-backoff": "~3.1.1",
-    "mongoose": "~7.6.0"
+    "@arque/core": "0.2.0-alpha.0",
+    "@scaleforge/joser": "0.4.0",
+    "debug": "4.3.4",
+    "decimal.js": "10.4.3",
+    "exponential-backoff": "3.1.1",
+    "mongoose": "7.6.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "gitHead": "8ca63b1c78121876fd12f6eeeb2267f94d7af22c"
+  }
 }
