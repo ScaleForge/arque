@@ -31,6 +31,10 @@ export class AggregateFactory<T extends Aggregate> {
     });
   }
 
+  public async clear() {
+    this.cache.clear();
+  }
+
   public async load(
     id: Buffer,
     opts?: {

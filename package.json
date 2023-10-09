@@ -2,7 +2,9 @@
   "name": "arque",
   "description": "The Event Sourcing library.",
   "scripts": {
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "build": "lerna run build",
+    "example:basic-aggregate": "cd examples && npm run example:basic-aggregate"
   },
   "license": "MIT",
   "devDependencies": {

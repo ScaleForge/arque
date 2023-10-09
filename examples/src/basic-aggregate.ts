@@ -3,10 +3,11 @@ import { MongoStoreAdapter } from '@arque/mongo-store-adapter';
 import { KafkaStreamAdapter } from '@arque/kafka-stream-adapter';
 import { randomBytes } from 'crypto';
 import {
-  EventType,
   WalletAggregateCommandHandler,
+  WalletAggregateCommandHandlers,
   WalletAggregateCommandType,
   WalletAggregateEventHandler,
+  WalletAggregateEventHandlers,
   WalletAggregateState,
 } from './libs/common';
 import debug from 'debug';
@@ -30,96 +31,8 @@ async function main() {
   const WalletAggregateFactory = new AggregateFactory<WalletAggregate>(
     store,
     stream,
-    [
-      {
-        type: WalletAggregateCommandType.Debit,
-        handle(ctx, _, { amount }) {
-          const balance = ctx.state.balance - amount;
-
-          if (balance < 0) {
-            throw new Error('not enough balance');
-          }
-
-          return {
-            type: EventType.WalletDebited,
-            body: {
-              amount,
-              balance,
-            },
-          };
-        },
-      },
-      {
-        type: WalletAggregateCommandType.Credit,
-        handle(ctx, _, { amount }) {
-          return {
-            type: EventType.WalletCredited,
-            body: {
-              amount,
-              balance: ctx.state.balance + amount,
-            },
-          };
-        },
-      },
-      {
-        type: WalletAggregateCommandType.CreateTransaction,
-        handle(ctx, _, operations) {
-          const events = [];
-
-          let balance = ctx.state.balance;
-
-          for (const operation of operations) {
-            if (operation.type === 'debit') {
-              balance -= operation.params.amount;
-
-              if (balance < 0) {
-                throw new Error('not enough balance');
-              }
-    
-              events.push({
-                type: EventType.WalletDebited,
-                body: {
-                  amount: operation.params.amount,
-                  balance,
-                },
-              });
-
-              continue;
-            }
-
-            balance += operation.params.amount;
-
-            events.push({
-              type: EventType.WalletCredited,
-              body: {
-                amount: operation.params.amount,
-                balance,
-              },
-            });
-          }
-
-          return events;
-        },
-      },
-    ],
-    [
-      {
-        type: EventType.WalletCredited,
-        handle(_ctx, event) {
-          return {
-            balance: event.body.balance,
-          };
-        },
-      },
-      {
-        type: EventType.WalletDebited,
-        handle(_ctx, event) {
-          return {
-            balance: event.body.balance,
-          };
-        },
-      },
-    ],
+    WalletAggregateCommandHandlers,
+    WalletAggregateEventHandlers,
     {
       defaultState: {
         balance: 0,
