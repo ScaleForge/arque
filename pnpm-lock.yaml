@@ -60,14 +60,14 @@ importers:
   examples:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.0-alpha.1
-        version: link:../packages/core
+        specifier: 0.2.0-alpha.1
+        version: 0.2.0-alpha.1
       '@arque/kafka-stream-adapter':
-        specifier: ^0.2.0-alpha.1
-        version: link:../packages/kafka-stream-adapter
+        specifier: 0.2.0-alpha.1
+        version: 0.2.0-alpha.1
       '@arque/mongo-store-adapter':
-        specifier: ^0.2.0-alpha.1
-        version: link:../packages/mongo-store-adapter
+        specifier: 0.2.0-alpha.1
+        version: 0.2.0-alpha.1
       debug:
         specifier: 4.3.4
         version: 4.3.4
@@ -90,7 +90,7 @@ importers:
   packages/kafka-stream-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.0-alpha.2
+        specifier: ^0.2.0-alpha.3
         version: link:../core
       '@scaleforge/joser':
         specifier: 0.4.0
@@ -111,7 +111,7 @@ importers:
   packages/mongo-config-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.0-alpha.2
+        specifier: ^0.2.0-alpha.3
         version: link:../core
       debug:
         specifier: 4.3.4
@@ -126,7 +126,7 @@ importers:
   packages/mongo-store-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.0-alpha.2
+        specifier: ^0.2.0-alpha.3
         version: link:../core
       '@scaleforge/joser':
         specifier: 0.4.0
@@ -158,6 +158,46 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.19
     dev: true
+
+  /@arque/core@0.2.0-alpha.1:
+    resolution: {integrity: sha512-6g9QGPT2Mbg8JjADBAVmfgMubK14VgNokUMQUyNzK7fXGL+luBgat5z7WcljwYfQFFhC45Y1aokr4bZWNw6qhg==}
+    dependencies:
+      async-mutex: 0.4.0
+      bs58: 5.0.0
+      exponential-backoff: 3.1.1
+      lru-cache: 10.0.1
+    dev: false
+
+  /@arque/kafka-stream-adapter@0.2.0-alpha.1:
+    resolution: {integrity: sha512-UYJNFbjWLSqabFVigMWyDHtZn5K6x81uLaeXR9ETOuPpF6qukEl7hhssF6ywfxEstw0aUtMmBfawPaIPvjsIWg==}
+    dependencies:
+      '@arque/core': 0.2.0-alpha.1
+      '@scaleforge/joser': 0.4.0
+      debug: 4.3.4
+      flatbuffers: 23.5.26
+      kafkajs: 2.2.4
+      ohash: 1.1.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /@arque/mongo-store-adapter@0.2.0-alpha.1:
+    resolution: {integrity: sha512-OiafgwBpZHVEDxossMfVhBJKQKdJaK0S2TqkbCg5r8o7CDVNZ76NP4CQS7VizszBolTH3vj/O0cXQG6pUEBa/Q==}
+    dependencies:
+      '@arque/core': 0.2.0-alpha.1
+      '@scaleforge/joser': 0.4.0
+      debug: 4.3.4
+      decimal.js: 10.4.3
+      exponential-backoff: 3.1.1
+      mongoose: 7.6.0
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - supports-color
+    dev: false
 
   /@babel/code-frame@7.22.13:
     resolution: {integrity: sha512-XktuhWlJ5g+3TJXc5upd9Ks1HutSArik6jf2eAjYFyIOf4ej3RN+184cZbzDvbPnuTJIUhPKKJE3cIsYTiAT3w==}
