@@ -1,4 +1,6 @@
 {
+  "name": "@arque/examples",
+  "version": "0.2.0",
   "scripts": {
     "example:basic-aggregate": "DEBUG=* ts-node ./src/basic-aggregate.ts"
   },
