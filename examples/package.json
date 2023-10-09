@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "example:basic-aggregate": "DEBUG=* ts-node ./src/basic-aggregate.ts"
+  },
+  "dependencies": {
+    "@arque/core": "0.2.0-alpha.0",
+    "@arque/mongo-store-adapter": "0.2.0-alpha.0",
+    "@arque/kafka-stream-adapter": "0.2.0-alpha.0",
+    "debug": "4.3.4"
+  }
+}

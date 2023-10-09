@@ -57,6 +57,21 @@ importers:
         specifier: ~5.2.2
         version: 5.2.2
 
+  examples:
+    dependencies:
+      '@arque/core':
+        specifier: 0.2.0-alpha.0
+        version: link:../packages/core
+      '@arque/kafka-stream-adapter':
+        specifier: 0.2.0-alpha.0
+        version: link:../packages/kafka-stream-adapter
+      '@arque/mongo-store-adapter':
+        specifier: 0.2.0-alpha.0
+        version: link:../packages/mongo-store-adapter
+      debug:
+        specifier: 4.3.4
+        version: 4.3.4
+
   packages/core:
     dependencies:
       async-mutex:
