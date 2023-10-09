@@ -1,13 +1,15 @@
-import { EventId, StreamEvent } from '@arque/core';
+import { EventId, Event } from '@arque/core';
 import { Builder, ByteBuffer } from 'flatbuffers';
 import { Event as FlatbuffersEvent } from './flatbuffers/event_generated';
+import { Joser } from '@scaleforge/joser';
 
-export function serialize(event: StreamEvent): Buffer {
+export function serialize(event: Event, joser: Joser): Buffer {
   const builder = new Builder(1024);
-
+  
   const id = FlatbuffersEvent.createIdVector(builder, event.id.buffer);
   const aggregate_id = FlatbuffersEvent.createAggregateIdVector(builder, event.aggregate.id);
-  const meta___ctx = event.meta.__ctx ? FlatbuffersEvent.createMeta_CtxVector(builder, event.meta.__ctx) : null;
+  const body = FlatbuffersEvent.createBodyVector(builder, Buffer.from(JSON.stringify(joser.serialize(event.body)), 'utf8'));
+  const meta = FlatbuffersEvent.createMetaVector(builder, Buffer.from(JSON.stringify(joser.serialize(event.meta)), 'utf8'));
 
   FlatbuffersEvent.startEvent(builder);
 
@@ -15,9 +17,8 @@ export function serialize(event: StreamEvent): Buffer {
   FlatbuffersEvent.addType(builder, event.type);
   FlatbuffersEvent.addAggregateId(builder, aggregate_id);
   FlatbuffersEvent.addAggregateVersion(builder, event.aggregate.version);
-  if (meta___ctx !== null) {
-    FlatbuffersEvent.addMeta_Ctx(builder, meta___ctx);
-  }
+  FlatbuffersEvent.addBody(builder, body);
+  FlatbuffersEvent.addMeta(builder, meta);
   FlatbuffersEvent.addTimestamp(builder, Math.floor(event.timestamp.getTime() / 1000));
 
   const offset = FlatbuffersEvent.endEvent(builder);
@@ -27,18 +28,15 @@ export function serialize(event: StreamEvent): Buffer {
   return Buffer.from(builder.asUint8Array());
 }
 
-export function deserialize(data: Buffer): StreamEvent {
+export function deserialize(data: Buffer, joser: Joser):
+  Pick<Event, 'id' | 'type' | 'aggregate' | 'meta' | 'timestamp'> & { body: Record<string, unknown> | null } {
   const buffer = new ByteBuffer(data);
 
   const event = FlatbuffersEvent.getRootAsEvent(buffer);
 
-  const meta___ctx = event.meta_CtxArray();
+  const rawBody = event.bodyArray();
 
-  const meta: { __ctx?: Buffer } = {};
-
-  if (meta___ctx) {
-    meta.__ctx = Buffer.from(meta___ctx);
-  }
+  const body = rawBody ? joser.deserialize(JSON.parse(Buffer.from(rawBody).toString('utf8'))) : null;
 
   return {
     id: EventId.from(Buffer.from(event.idArray())),
@@ -47,7 +45,8 @@ export function deserialize(data: Buffer): StreamEvent {
       id: Buffer.from(event.aggregateIdArray()),
       version: event.aggregateVersion(),
     },
-    meta,
+    body,
+    meta: joser.deserialize(JSON.parse(Buffer.from(event.metaArray()).toString('utf8'))),
     timestamp: new Date(event.timestamp() * 1000),
   };
 }

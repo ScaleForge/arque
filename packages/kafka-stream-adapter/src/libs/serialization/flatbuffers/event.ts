@@ -62,28 +62,43 @@ aggregateVersion():number {
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
-meta_Ctx(index: number):number|null {
+body(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 12);
   return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
 }
 
-meta_CtxLength():number {
+bodyLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 12);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-meta_CtxArray():Uint8Array|null {
+bodyArray():Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 12);
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-timestamp():number {
+meta(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+}
+
+metaLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+metaArray():Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+}
+
+timestamp():number {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
 static startEvent(builder:flatbuffers.Builder) {
-  builder.startObject(6);
+  builder.startObject(7);
 }
 
 static addId(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset) {
@@ -126,11 +141,11 @@ static addAggregateVersion(builder:flatbuffers.Builder, aggregateVersion:number)
   builder.addFieldInt32(3, aggregateVersion, 0);
 }
 
-static addMeta_Ctx(builder:flatbuffers.Builder, meta_CtxOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(4, meta_CtxOffset, 0);
+static addBody(builder:flatbuffers.Builder, bodyOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(4, bodyOffset, 0);
 }
 
-static createMeta_CtxVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
+static createBodyVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
   builder.startVector(1, data.length, 1);
   for (let i = data.length - 1; i >= 0; i--) {
     builder.addInt8(data[i]!);
@@ -138,12 +153,28 @@ static createMeta_CtxVector(builder:flatbuffers.Builder, data:number[]|Uint8Arra
   return builder.endVector();
 }
 
-static startMeta_CtxVector(builder:flatbuffers.Builder, numElems:number) {
+static startBodyVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+}
+
+static addMeta(builder:flatbuffers.Builder, metaOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(5, metaOffset, 0);
+}
+
+static createMetaVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startMetaVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
 static addTimestamp(builder:flatbuffers.Builder, timestamp:number) {
-  builder.addFieldInt32(5, timestamp, 0);
+  builder.addFieldInt32(6, timestamp, 0);
 }
 
 static endEvent(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -159,13 +190,14 @@ static finishSizePrefixedEventBuffer(builder:flatbuffers.Builder, offset:flatbuf
   builder.finish(offset, undefined, true);
 }
 
-static createEvent(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, type:number, aggregateIdOffset:flatbuffers.Offset, aggregateVersion:number, meta_CtxOffset:flatbuffers.Offset, timestamp:number):flatbuffers.Offset {
+static createEvent(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, type:number, aggregateIdOffset:flatbuffers.Offset, aggregateVersion:number, bodyOffset:flatbuffers.Offset, metaOffset:flatbuffers.Offset, timestamp:number):flatbuffers.Offset {
   Event.startEvent(builder);
   Event.addId(builder, idOffset);
   Event.addType(builder, type);
   Event.addAggregateId(builder, aggregateIdOffset);
   Event.addAggregateVersion(builder, aggregateVersion);
-  Event.addMeta_Ctx(builder, meta_CtxOffset);
+  Event.addBody(builder, bodyOffset);
+  Event.addMeta(builder, metaOffset);
   Event.addTimestamp(builder, timestamp);
   return Event.endEvent(builder);
 }

@@ -3,10 +3,12 @@ import { Kafka, Producer, logLevel } from 'kafkajs';
 import { serialize } from './libs/serialization';
 import { murmurHash } from 'ohash';
 import { debug } from 'debug';
+import { Joser, Serializer } from '@scaleforge/joser';
 
 type Options = {
   prefix: string;
   brokers: string[];
+  serializers?: Serializer[];
 };
 
 export class KafkaStreamAdapter implements StreamAdapter {
@@ -21,6 +23,8 @@ export class KafkaStreamAdapter implements StreamAdapter {
 
   private readonly opts: Options;
 
+  private readonly joser: Joser;
+
   private producerPromise: Promise<Producer> | null = null;
 
   constructor(opts?: Partial<Options>) {
@@ -34,16 +38,18 @@ export class KafkaStreamAdapter implements StreamAdapter {
       logLevel: logLevel.ERROR,
     });
 
+    this.joser = new Joser({
+      serializers: opts?.serializers ?? [],
+    });
+
     this.producer().catch(err => {
       this.logger.error(`producer connection error: error=${err.message}`);
     });
   }
   
   subscribe(_params: { stream: string; handle: (event: Event) => Promise<void>; }): Promise<Subscriber> {
-    throw new Error('Method not implemented.');
+    throw new Error('not implemented');
   }
-
-
 
   private async producer(): Promise<Producer> {
     if (!this.producerPromise) {
@@ -86,7 +92,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
   async sendEvents(events: Event[], stream: string, ctx?: Buffer): Promise<void> {
     const messages = events.map(event => {
       return {
-        value: serialize(event),
+        value: serialize(event, this.joser),
         headers: {
           __ctx: ctx ?? Buffer.from([0]),
         },

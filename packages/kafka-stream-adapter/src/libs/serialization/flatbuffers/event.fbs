@@ -3,7 +3,8 @@ table Event {
   type:ushort;
   aggregate_id:[ubyte];
   aggregate_version:uint;
-  meta___ctx:[ubyte];
+  body:[ubyte];
+  meta:[ubyte];
   timestamp:uint;
 }
 
