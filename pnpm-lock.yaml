@@ -60,17 +60,17 @@ importers:
   examples:
     dependencies:
       '@arque/core':
-        specifier: 0.2.0-alpha.3
-        version: 0.2.0-alpha.3
+        specifier: 0.2.0
+        version: link:../packages/core
       '@arque/kafka-stream-adapter':
-        specifier: 0.2.0-alpha.3
-        version: 0.2.0-alpha.3
+        specifier: 0.2.0
+        version: link:../packages/kafka-stream-adapter
       '@arque/mongo-config-adapter':
-        specifier: 0.2.0-alpha.3
-        version: 0.2.0-alpha.3
+        specifier: 0.2.0
+        version: link:../packages/mongo-config-adapter
       '@arque/mongo-store-adapter':
-        specifier: 0.2.0-alpha.3
-        version: 0.2.0-alpha.3
+        specifier: 0.2.0
+        version: link:../packages/mongo-store-adapter
       debug:
         specifier: 4.3.4
         version: 4.3.4
@@ -167,62 +167,6 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.19
     dev: true
-
-  /@arque/core@0.2.0-alpha.3:
-    resolution: {integrity: sha512-Bh1jS+nfIFEZ91qzihRtJip0+rNC6M4v6SdytlJ7qGyz7VgOAcdZOp2Kv36RBhH7w/hCGhLD1DwQ7YXQWOkWbA==}
-    dependencies:
-      async-mutex: 0.4.0
-      bs58: 5.0.0
-      exponential-backoff: 3.1.1
-      lru-cache: 10.0.1
-    dev: false
-
-  /@arque/kafka-stream-adapter@0.2.0-alpha.3:
-    resolution: {integrity: sha512-onEEscqY/R7BOHMHJaCBMD1tQrIsC0kT0ZA5CQWNq9DXU8wOwDf/ixd/oFTXRur8K+nA9Opx50pOHnIw6ufjvg==}
-    dependencies:
-      '@arque/core': 0.2.0-alpha.3
-      '@scaleforge/joser': 0.4.0
-      debug: 4.3.4
-      flatbuffers: 23.5.26
-      kafkajs: 2.2.4
-      ohash: 1.1.3
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
-  /@arque/mongo-config-adapter@0.2.0-alpha.3:
-    resolution: {integrity: sha512-mntHyyVpQME6kCTXEZ2ar2jZQK2eYQtmVD37LGnFa3e08AcLinmdzvTCSWztydVWCVJyzBnZG+g03tDeDKiwKw==}
-    dependencies:
-      '@arque/core': 0.2.0-alpha.3
-      debug: 4.3.4
-      lru-cache: 10.0.1
-      mongoose: 7.6.0
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - '@mongodb-js/zstd'
-      - kerberos
-      - mongodb-client-encryption
-      - snappy
-      - supports-color
-    dev: false
-
-  /@arque/mongo-store-adapter@0.2.0-alpha.3:
-    resolution: {integrity: sha512-Pq74qS5G42NFWVI6B2beR4aOHBx899y3gMOizjn7Y/5D5huXE1CIYh3HuCzyIEgjJrNLEiyFqtETpjOtpsPjDA==}
-    dependencies:
-      '@arque/core': 0.2.0-alpha.3
-      '@scaleforge/joser': 0.4.0
-      debug: 4.3.4
-      decimal.js: 10.4.3
-      exponential-backoff: 3.1.1
-      mongoose: 7.6.0
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - '@mongodb-js/zstd'
-      - kerberos
-      - mongodb-client-encryption
-      - snappy
-      - supports-color
-    dev: false
 
   /@babel/code-frame@7.22.13:
     resolution: {integrity: sha512-XktuhWlJ5g+3TJXc5upd9Ks1HutSArik6jf2eAjYFyIOf4ej3RN+184cZbzDvbPnuTJIUhPKKJE3cIsYTiAT3w==}
