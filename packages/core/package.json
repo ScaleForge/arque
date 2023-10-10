@@ -1,6 +1,6 @@
 {
   "name": "@arque/core",
-  "version": "0.2.0-alpha.3",
+  "version": "0.2.0",
   "description": "`arque` core library",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
