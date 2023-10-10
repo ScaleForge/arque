@@ -20,8 +20,10 @@ export type Event<
   timestamp: Date;
 };
 
+type ExtractEventType<T> = T extends Event<infer TType, unknown> ? TType : never;
+
 export type EventHandler<TEvent extends Event = Event, TState = unknown> = {
-  type: TEvent['type'];
+  type: ExtractEventType<TEvent>;
   handle(
     ctx: {
       readonly aggregate: {
@@ -32,6 +34,11 @@ export type EventHandler<TEvent extends Event = Event, TState = unknown> = {
     },
     event: TEvent
   ): TState | Promise<TState>;
+};
+
+export type ProjectionEventHandler<TEvent extends Event = Event, TState = unknown> = {
+  type: ExtractEventType<TEvent>;
+  handle(ctx: { readonly state: TState }, event: TEvent): void | Promise<void>;
 };
 
 export type Command<
@@ -47,12 +54,14 @@ export type GeneratedEvent<TEvent extends Event> = Pick<
   'type' | 'body'
 > & Partial<Pick<TEvent, 'meta'>>;
 
+type ExtractCommandType<T> = T extends Command<infer TType, unknown[]> ? TType : never;
+
 export type CommandHandler<
   TCommand extends Command = Command,
   TEvent extends Event = Event,
   TState = unknown,
 > = {
-  type: TCommand['type'];
+  type: ExtractCommandType<TCommand>;
   handle(
     ctx: {
       readonly aggregate: {
@@ -68,9 +77,4 @@ export type CommandHandler<
     | GeneratedEvent<TEvent>[]
     | Promise<GeneratedEvent<TEvent>>
     | Promise<GeneratedEvent<TEvent>[]>;
-};
-
-export type ProjectionEventHandler<TEvent extends Event = Event, TState = unknown> = {
-  type: TEvent['type'];
-  handle(ctx: { readonly state: TState }, event: TEvent): void | Promise<void>;
 };

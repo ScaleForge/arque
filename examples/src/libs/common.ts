@@ -138,7 +138,7 @@ export const WalletAggregateCommandHandlers: WalletAggregateCommandHandler[] = [
 export const WalletAggregateEventHandlers: WalletAggregateEventHandler[] = [
   {
     type: EventType.WalletCredited,
-    handle(_ctx, event) {
+    handle(ctx, event) {
       return {
         balance: event.body.balance,
       };
@@ -146,7 +146,7 @@ export const WalletAggregateEventHandlers: WalletAggregateEventHandler[] = [
   },
   {
     type: EventType.WalletDebited,
-    handle(_ctx, event) {
+    handle(ctx, event) {
       return {
         balance: event.body.balance,
       };
