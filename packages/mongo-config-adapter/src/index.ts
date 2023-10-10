@@ -10,6 +10,8 @@ type Options = {
   readonly cacheTTL: number;
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
+export type MongoConfigAdapterOptions = Partial<Options>;
+
 export class MongoConfigAdapter implements ConfigAdapter {
   private readonly logger = {
     info: debug('MongoStoreAdapter:info'),

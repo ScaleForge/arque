@@ -14,6 +14,8 @@ type Options = {
   serializers?: Serializer[];
 };
 
+export type KafkaStreamAdapterOptions = Partial<Options>;
+
 export class KafkaStreamAdapter implements StreamAdapter {
   private readonly logger = {
     info: debug('KafkaStreamAdapter:info'),

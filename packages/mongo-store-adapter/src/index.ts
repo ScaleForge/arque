@@ -13,6 +13,8 @@ type Options = {
   readonly retryMaxAttempts: number;
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
+export type MongoStoreAdapterOptions = Partial<Options>;
+
 export class MongoStoreAdapter implements StoreAdapter {
   private readonly logger = {
     info: debug('MongoStoreAdapter:info'),
