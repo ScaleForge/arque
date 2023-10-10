@@ -6,7 +6,8 @@ import { LRUCache } from 'lru-cache';
 
 type Options = {
   readonly uri: string;
-  readonly cacheSize: number;
+  readonly cacheMax: number;
+  readonly cacheTTL: number;
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
 export class MongoConfigAdapter implements ConfigAdapter {
@@ -30,15 +31,13 @@ export class MongoConfigAdapter implements ConfigAdapter {
       minPoolSize: opts?.minPoolSize ?? 2,
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 10000,
-      cacheSize: opts?.cacheSize ?? 10000,
+      cacheMax: opts?.cacheMax ?? 1000,
+      cacheTTL: opts?.cacheTTL ?? 1000 * 60 * 60,
     };
 
     this.cache = new LRUCache({
-      maxSize: this.opts.cacheSize,
-      sizeCalculation: (value) => {
-        return value.length;
-      },
-      ttl: 1000 * 60 * 60,
+      max: this.opts.cacheMax,
+      ttl: this.opts.cacheTTL,
     });
   }
 

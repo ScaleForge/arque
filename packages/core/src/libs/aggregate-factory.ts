@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { LRUCache } from 'lru-cache';
-import { Aggregate, AggregateOpts } from './aggregate';
+import { Aggregate, AggregateOptions } from './aggregate';
 import { StoreAdapter } from './adapters/store-adapter';
 import { StreamAdapter } from './adapters/stream-adapter';
 
@@ -23,7 +23,7 @@ export class AggregateFactory<T extends Aggregate> {
       readonly defaultState?: ExtractState<T> | (() => ExtractState<T>);
       readonly cacheMax?: number;
       readonly cacheTTL?: number;
-    } & Partial<AggregateOpts<ExtractState<T>>>,
+    } & Partial<AggregateOptions<ExtractState<T>>>,
   ) {
     this.cache = new LRUCache({
       max: opts.cacheMax || 256,

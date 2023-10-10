@@ -242,4 +242,47 @@ describe('Aggregate#process', () => {
     expect(store.saveEvents).toBeCalledTimes(2);
     expect(stream.sendEvents).toBeCalledTimes(1);
   });
+
+  test.concurrent('snapshot', async () => {
+    const id = randomBytes(13);
+
+    const store = {
+      listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator([])),
+      findLatestSnapshot: jest.fn().mockResolvedValue(null),
+      saveEvents: jest.fn().mockResolvedValue(undefined),
+      saveSnapshot: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const stream = {
+      sendEvents: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const aggregate = new Aggregate<BalanceAggregateState, typeof UpdateBalanceCommandHandler, typeof BalanceUpdatedEventHandler>(
+      store as never,
+      stream as never,
+      [UpdateBalanceCommandHandler],
+      [BalanceUpdatedEventHandler],
+      id,
+      0,
+      { balance: 0 },
+      { snapshotInterval: 10 },
+    );
+
+    const count = 45;
+
+    for (const index of R.range(0, count)) {
+      await aggregate.process({
+        type: CommandType.UpdateBalance,
+        args: [{ amount: index % 2 === 0 ? 10 : -5 }],
+      });
+    }
+    
+    expect(aggregate.state).toEqual({ balance: 10 * Math.ceil(count / 2) - 5 * Math.floor(count / 2) });
+    expect(aggregate.version).toEqual(count);
+    expect(store.listEvents).toBeCalledTimes(count);
+    expect(store.findLatestSnapshot).toBeCalledTimes(count);
+    expect(store.saveEvents).toBeCalledTimes(count);
+    expect(stream.sendEvents).toBeCalledTimes(count);
+    expect(store.saveSnapshot).toBeCalledTimes(Math.floor(count / 10));
+  });
 });

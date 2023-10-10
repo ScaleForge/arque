@@ -41,5 +41,18 @@ const Snapshot = new Schema({
 });
 Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': 1 }, { unique: true });
 
+const ProjectionCheckpoint = new Schema({
+  projection: String,
+  aggregate: {
+    id: Buffer,
+    version: Number,
+  },
+  timestamp: Date,
+}, {
+  id: false,
+  autoIndex: true,
+});
+ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1 }, { unique: true });
+ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1, 'aggregate.version': -1 });
 
-export { Event, Aggregate, Snapshot };
+export { Event, Aggregate, Snapshot, ProjectionCheckpoint };

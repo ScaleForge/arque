@@ -9,7 +9,7 @@ import { StreamAdapter } from './adapters/stream-adapter';
 
 type ExtractCommand<T> = T extends CommandHandler<infer Command, any, any> ? Command : never;
 
-export type AggregateOpts<TState> = {
+export type AggregateOptions<TState> = {
   readonly shouldTakeSnapshot?: (ctx: {
     aggregate: {
       id: Buffer;
@@ -34,7 +34,7 @@ export class Aggregate<
 
   private eventHandlers: Map<number, TEventHandler>;
 
-  private opts: AggregateOpts<TState>;
+  private opts: AggregateOptions<TState>;
 
   private _lastEvent: Event | null = null;
 
@@ -46,7 +46,7 @@ export class Aggregate<
     private _id: Buffer,
     private _version: number,
     private _state: TState,
-    opts?: Partial<AggregateOpts<TState>>,
+    opts?: Partial<AggregateOptions<TState>>,
   ) {
     this.mutex = new Mutex();
 
@@ -181,10 +181,18 @@ export class Aggregate<
         id: this.id,
         version: this.version + index + 1,
       },
-      meta: item.meta,
+      meta: {
+        ...item.meta,
+        __ctx: ctx,
+      },
     }));
 
-    await this.stream.sendEvents(events, 'main', ctx);
+    await this.stream.sendEvents([
+      {
+        stream: 'main',
+        events,
+      },
+    ]);
 
     await this.digest(events);
 

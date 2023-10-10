@@ -1,23 +1,16 @@
-import { Aggregate, AggregateFactory } from '@arque/core';
+import { AggregateFactory } from '@arque/core';
 import { MongoStoreAdapter } from '@arque/mongo-store-adapter';
 import { KafkaStreamAdapter } from '@arque/kafka-stream-adapter';
 import { randomBytes } from 'crypto';
 import {
-  WalletAggregateCommandHandler,
+  WalletAggregate,
   WalletAggregateCommandHandlers,
   WalletAggregateCommandType,
-  WalletAggregateEventHandler,
   WalletAggregateEventHandlers,
-  WalletAggregateState,
 } from './libs/common';
 import debug from 'debug';
 import assert from 'assert';
-
-const KAFKA_BROKERS = (process.env.KAFKA_BROKERS ?? 'localhost:9092,localhost:9093,localhost:9094').split(',');
-
-const MONGODB_URI = process.env.MONGODB_URI ?? 'mongodb://mongo1:27021,mongo2:27022,mongo3:27023/?replicaSet=rs0';
-
-type WalletAggregate = Aggregate<WalletAggregateState, WalletAggregateCommandHandler, WalletAggregateEventHandler>;
+import { MONGODB_URI, KAFKA_BROKERS } from './libs/config';
 
 async function main() {
   const store = new MongoStoreAdapter({

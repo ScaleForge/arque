@@ -1,0 +1,96 @@
+import assert from 'assert';
+import { ConfigAdapter, StoreAdapter, StreamAdapter, Subscriber } from './adapters';
+import { ProjectionEventHandler, Event } from './types';
+import debug from 'debug';
+import R from 'ramda';
+
+export class Projection<
+  TState = unknown,
+  TEventHandler extends ProjectionEventHandler<Event, TState> = ProjectionEventHandler<Event, TState>,
+> {
+  private readonly logger = {
+    info: debug('Broker:info'),
+    error: debug('Broker:error'),
+    warn: debug('Broker:warn'),
+    verbose: debug('Broker:verbose'),
+  };
+
+  private readonly eventHandlers: Map<
+    number,
+    TEventHandler
+  >;
+
+  private subscriber: Subscriber | null = null;
+
+  private timestampLastEventReceived = Date.now();
+
+  constructor(
+    private readonly store: StoreAdapter,
+    private readonly stream: StreamAdapter,
+    private readonly config: ConfigAdapter,
+    eventHandlers: TEventHandler[],
+    private _id: string,
+    private readonly _state: TState,
+  ) {
+    this.eventHandlers = new Map(
+      R.map((item) => [item.type, item], eventHandlers),
+    );
+  }
+
+  get id() {
+    return this._id;
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  private async handleEvent(event: Omit<Event, 'body'> & { body: Record<string, unknown> | null }) {
+    this.timestampLastEventReceived = Date.now();
+
+    const handler = this.eventHandlers.get(event.type);
+
+    assert(handler, `handler does not exist: event=${event.type}`);
+
+    const { handle } = handler;
+    
+    if (await this.store.checkProjectionCheckpoint({ projection: this.id, aggregate: event.aggregate })) {
+      await handle({ state: this._state }, event);
+
+      await this.store.saveProjectionCheckpoint({
+        projection: this.id,
+        aggregate: event.aggregate,
+      });
+    }
+  }
+
+  async waitUntilSettled(duration: number = 60000) {
+    while (Date.now() - this.timestampLastEventReceived < duration) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+
+  async start() {
+    if (this.subscriber) {
+      throw new Error('already started');
+    }
+
+    await this.config.saveStream({
+      id: this.id,
+      events: [...new Set(R.pluck('type', [...this.eventHandlers.values()])).values()],
+    });
+
+    this.subscriber = await this.stream.subscribe(
+      this.id,
+      async (event) => {
+        await this.handleEvent(event as never);
+      },
+    );
+  }
+
+  async stop(): Promise<void> {
+    if (this.subscriber) {
+      await this.subscriber.stop();
+    }
+  }
+}

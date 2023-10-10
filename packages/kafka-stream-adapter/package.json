@@ -24,6 +24,7 @@
     "@arque/core": "^0.2.0-alpha.3",
     "@scaleforge/joser": "0.4.0",
     "debug": "4.3.4",
+    "exponential-backoff": "3.1.1",
     "flatbuffers": "23.5.26",
     "kafkajs": "2.2.4",
     "ohash": "1.1.3"

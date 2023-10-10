@@ -4,19 +4,17 @@ import { setupFixture } from './helpers/fixture';
 import { randomBytes } from 'crypto';
 import { AggregateVersionConflictError } from '@arque/core';
 
-describe('MongooseEventStoreStorageAdapter#saveEvents', () => {
+describe('MongoStoreAdapter#saveEvents', () => {
   test.concurrent('save event', async () => {
     const event = generateEvent();
 
-    const { store, connection, teardown } = await setupFixture();
+    const { store, teardown } = await setupFixture();
 
     await store.saveEvents({
       aggregate: event.aggregate,
       timestamp: event.timestamp,
       events: [R.pick(['id', 'type', 'body', 'meta'], event)],
     });
-    const cursor = await connection.collection('events').find({});
-    console.dir(await cursor.tryNext(), { depth: 5 });
 
     await teardown();
   });

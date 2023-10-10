@@ -56,6 +56,8 @@ export class MongoStoreAdapter implements StoreAdapter {
     });
   }
 
+
+
   private async connection() {
     if (!this.connectionPromise) {
       this.connectionPromise = mongoose.createConnection(this.opts.uri, {
@@ -81,6 +83,39 @@ export class MongoStoreAdapter implements StoreAdapter {
     const connection = await this.connection();
 
     return connection.model(model, schema[model]);
+  }
+
+  async saveProjectionCheckpoint(params: { projection: string; aggregate: { id: Buffer; version: number; }; }): Promise<void> {
+    const ProjectionCheckpointModel = await this.model('ProjectionCheckpoint');
+
+    await ProjectionCheckpointModel.updateOne(
+      { projection: params.projection, 'aggregate.id': params.aggregate.id },
+      {
+        $set: {
+          'aggregate.version': params.aggregate.version,
+        },
+        $setOnInsert: {
+          projection: params.projection,
+          'aggregate.id': params.aggregate.id,
+          timestamp: new Date(),
+        },
+      },
+      {
+        upsert: true,
+      }
+    );
+  }
+
+  async checkProjectionCheckpoint(params: { projection: string; aggregate: { id: Buffer; version: number; }; }): Promise<boolean> {
+    const ProjectionCheckpointModel = await this.model('ProjectionCheckpoint');
+    
+    const count = await ProjectionCheckpointModel.countDocuments({
+      projection: params.projection,
+      'aggregate.id': params.aggregate.id,
+      'aggregate.version': { $gte: params.aggregate.version },
+    });
+
+    return count === 0;
   }
 
   async saveEvents(params: {
@@ -248,10 +283,10 @@ export class MongoStoreAdapter implements StoreAdapter {
   async saveSnapshot(params: Snapshot) {
     const SnapshotModel = await this.model('Snapshot');
 
-    await SnapshotModel.create({
+    await SnapshotModel.create([{
       ...params,
       state: this.joser.serialize(params.state as never),
-    }, {
+    }], {
       validateBeforeSave: false,
       w: 1,
     });

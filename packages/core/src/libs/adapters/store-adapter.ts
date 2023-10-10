@@ -44,5 +44,21 @@ export interface StoreAdapter {
     };
   }): Promise<Snapshot<TState> | null>;
 
+  saveProjectionCheckpoint(params: {
+    projection: string;
+    aggregate: {
+      id: Buffer;
+      version: number;
+    };
+  }): Promise<void>;
+
+  checkProjectionCheckpoint(params: {
+    projection: string;
+    aggregate: {
+      id: Buffer;
+      version: number;
+    };
+  }): Promise<boolean>;
+
   close(): Promise<void>;
 }

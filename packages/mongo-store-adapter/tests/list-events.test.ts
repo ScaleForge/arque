@@ -4,7 +4,7 @@ import { EventId } from '@arque/core';
 import { setupFixture } from './helpers/fixture';
 import { generateEvent } from './helpers/generate-event';
 
-describe('MongoStorageAdapter#listEvents', () => {
+describe('MongoStoreAdapter#listEvents', () => {
   test.concurrent('list events', async () => {
     const id = randomBytes(13);
 

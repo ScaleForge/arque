@@ -1,11 +1,14 @@
 {
   "scripts": {
-    "example:basic-aggregate": "DEBUG=* ts-node ./src/basic-aggregate.ts"
+    "example:basic-aggregate": "DEBUG=* ts-node ./src/basic-aggregate.ts",
+    "example:snapshot": "DEBUG=* ts-node ./src/snapshot.ts",
+    "example:projection": "DEBUG=* ts-node ./src/projection.ts"
   },
   "dependencies": {
-    "@arque/core": "0.2.0-alpha.1",
-    "@arque/kafka-stream-adapter": "0.2.0-alpha.1",
-    "@arque/mongo-store-adapter": "0.2.0-alpha.1",
+    "@arque/core": "0.2.0-alpha.3",
+    "@arque/kafka-stream-adapter": "0.2.0-alpha.3",
+    "@arque/mongo-config-adapter": "0.2.0-alpha.3",
+    "@arque/mongo-store-adapter": "0.2.0-alpha.3",
     "debug": "4.3.4"
   },
   "private": true

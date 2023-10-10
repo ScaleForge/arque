@@ -1,4 +1,4 @@
-import { Event, Command, CommandHandler, EventHandler } from '@arque/core';
+import { Event, Command, CommandHandler, EventHandler, Aggregate } from '@arque/core';
 
 enum AggregateType {
   Wallet = 1,
@@ -9,12 +9,12 @@ export enum EventType {
   WalletCredited = AggregateType.Wallet << 8 | 1,
 }
 
-type WalletDebitedEvent = Event<EventType.WalletDebited, {
+export type WalletDebitedEvent = Event<EventType.WalletDebited, {
   amount: number;
   balance: number;
 }>;
 
-type WalletCreditedEvent = Event<EventType.WalletCredited, {
+export type WalletCreditedEvent = Event<EventType.WalletCredited, {
   amount: number;
   balance: number;
 }>;
@@ -59,6 +59,8 @@ type WalletCreditedEventHandler = EventHandler<WalletCreditedEvent, WalletAggreg
 export type WalletAggregateCommandHandler = WalletDebitCommandHandler | WalletCreditCommandHandler | WalletCreateTransactionCommandHandler;
 
 export type WalletAggregateEventHandler = WalletDebitedEventHandler | WalletCreditedEventHandler;
+
+export type WalletAggregate = Aggregate<WalletAggregateState, WalletAggregateCommandHandler, WalletAggregateEventHandler>;
 
 export const WalletAggregateCommandHandlers: WalletAggregateCommandHandler[] = [
   {

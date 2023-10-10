@@ -1,16 +1,24 @@
-import { Event } from '../types';
+import { Event as GlobalEvent } from '../types';
+
+type Event = Pick<GlobalEvent, 'id' | 'type' | 'aggregate' | 'meta' | 'timestamp'> & { body: Buffer | Record<string, unknown> | null };
 
 export interface Subscriber {
   stop(): Promise<void>;
 }
 
 export interface StreamAdapter {
-  sendEvents(events: Event[], stream: string, ctx?: Buffer): Promise<void>;
+  sendEvents(
+    events: {
+      stream: string;
+      events: Event[]; 
+    }[],
+    opts?: { raw?: true },
+  ): Promise<void>;
 
-  subscribe(params: {
+  subscribe(
     stream: string,
-    handle: (event: Event) => Promise<void>
-  }): Promise<Subscriber>;
+    handle: (event: Event) => Promise<void>,
+    opts?: { raw?: true }): Promise<Subscriber>;
   
   close(): Promise<void>;
 }
