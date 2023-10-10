@@ -8,26 +8,36 @@ type ExtractState<T> = T extends Aggregate<infer State, any, any> ? State : neve
 type ExtractCommandHandler<T> = T extends Aggregate<any, infer CommandHandler, any> ? CommandHandler : never;
 type ExtractEventHandler<T> = T extends Aggregate<any, any, infer EventHandler> ? EventHandler : never;
 
+type Options<T> = {
+  readonly defaultState: ExtractState<T> | (() => ExtractState<T>);
+  readonly cacheMax: number;
+  readonly cacheTTL: number;
+} & Partial<AggregateOptions<ExtractState<T>>>;
+
 export class AggregateFactory<T extends Aggregate> {
-  private cache: LRUCache<
+  private readonly cache: LRUCache<
     string,
     Promise<T>
   >;
+
+  private readonly opts: Options<T>;
 
   constructor(
     private readonly store: StoreAdapter,
     private readonly stream: StreamAdapter,
     private commandHandlers: ExtractCommandHandler<T>[],
     private eventHandlers: ExtractEventHandler<T>[],
-    private readonly opts: {
-      readonly defaultState?: ExtractState<T> | (() => ExtractState<T>);
-      readonly cacheMax?: number;
-      readonly cacheTTL?: number;
-    } & Partial<AggregateOptions<ExtractState<T>>>,
+    opts?: Partial<Options<T>>,
   ) {
+    this.opts = {
+      defaultState: null,
+      cacheMax: opts?.cacheMax ?? 256,
+      cacheTTL: opts?.cacheTTL ?? 86400000, // 24 hours
+    };
+
     this.cache = new LRUCache({
-      max: opts.cacheMax || 256,
-      ttl: opts.cacheTTL || 86400000, // 24 hours
+      max: this.opts.cacheMax,
+      ttl: this.opts.cacheTTL,
     });
   }
 
@@ -47,8 +57,7 @@ export class AggregateFactory<T extends Aggregate> {
 
     if (!promise) {
       promise = (async () => {
-        const state = this.opts.defaultState ? 
-          (this.opts.defaultState instanceof Function ? this.opts.defaultState() : this.opts.defaultState): null;
+        const state = this.opts.defaultState instanceof Function ? this.opts.defaultState() : this.opts.defaultState;
 
         const aggregate = new Aggregate(
           this.store,
