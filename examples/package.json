@@ -5,10 +5,10 @@
     "example:projection": "DEBUG=* ts-node ./src/projection.ts"
   },
   "dependencies": {
-    "@arque/core": "0.2.0",
-    "@arque/kafka-stream-adapter": "0.2.0",
-    "@arque/mongo-config-adapter": "0.2.0",
-    "@arque/mongo-store-adapter": "0.2.0",
+    "@arque/core": "0.2.2",
+    "@arque/kafka-stream-adapter": "0.2.3",
+    "@arque/mongo-config-adapter": "0.2.3",
+    "@arque/mongo-store-adapter": "0.2.3",
     "debug": "4.3.4"
   },
   "private": true

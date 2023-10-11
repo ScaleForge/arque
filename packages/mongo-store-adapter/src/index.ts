@@ -11,6 +11,7 @@ type Options = {
   readonly retryStartingDelay: number;
   readonly retryMaxDelay: number;
   readonly retryMaxAttempts: number;
+  readonly serializers: Serializer[];
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
 export type MongoStoreAdapterOptions = Partial<Options>;
@@ -29,7 +30,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
   private connectionPromise: Promise<Connection>;
 
-  constructor(opts?: Partial<Options & { readonly serializers: Serializer[]; }>) {
+  constructor(opts?: Partial<Options>) {
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
       retryStartingDelay: opts?.retryStartingDelay ?? 100,
@@ -39,6 +40,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       minPoolSize: opts?.minPoolSize ?? 2,
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 10000,
+      serializers: opts?.serializers ?? [],
     };
 
     this.joser = new Joser({
@@ -53,7 +55,7 @@ export class MongoStoreAdapter implements StoreAdapter {
           serialize: (value: Date) => value,
           deserialize: (value: Date) => value,
         },
-        ...(opts?.serializers ?? []),
+        ...(this.opts.serializers),
       ],
     });
   }
