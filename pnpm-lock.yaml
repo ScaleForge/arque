@@ -61,13 +61,13 @@ importers:
     dependencies:
       '@arque/core':
         specifier: 0.2.2
-        version: link:../packages/core
+        version: 0.2.2
       '@arque/kafka-stream-adapter':
         specifier: 0.2.3
-        version: link:../packages/kafka-stream-adapter
+        version: 0.2.3
       '@arque/mongo-config-adapter':
         specifier: 0.2.3
-        version: link:../packages/mongo-config-adapter
+        version: 0.2.3
       '@arque/mongo-store-adapter':
         specifier: 0.2.3
         version: 0.2.3
@@ -96,7 +96,7 @@ importers:
   packages/kafka-stream-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.2
+        specifier: ^0.2.3
         version: link:../core
       '@scaleforge/joser':
         specifier: 0.4.0
@@ -120,7 +120,7 @@ importers:
   packages/mongo-config-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.2
+        specifier: ^0.2.3
         version: link:../core
       debug:
         specifier: 4.3.4
@@ -135,7 +135,7 @@ importers:
   packages/mongo-store-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.2.2
+        specifier: ^0.2.3
         version: link:../core
       '@scaleforge/joser':
         specifier: 0.4.0
@@ -150,8 +150,8 @@ importers:
         specifier: 3.1.1
         version: 3.1.1
       mongoose:
-        specifier: 7.6.0
-        version: 7.6.0
+        specifier: 7.6.1
+        version: 7.6.1
 
 packages:
 
@@ -177,6 +177,36 @@ packages:
       exponential-backoff: 3.1.1
       lru-cache: 10.0.1
     transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /@arque/kafka-stream-adapter@0.2.3:
+    resolution: {integrity: sha512-9RMdK7FZm4fyBAWLvakvIkcK6w2UiJajVlwXEWZ6mQjqNxCfBkoabr8CmET5EU7gN/MvR2Ek1PxMGW/1yLaLGA==}
+    dependencies:
+      '@arque/core': 0.2.2
+      '@scaleforge/joser': 0.4.0
+      debug: 4.3.4
+      exponential-backoff: 3.1.1
+      flatbuffers: 23.5.26
+      kafkajs: 2.2.4
+      ohash: 1.1.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /@arque/mongo-config-adapter@0.2.3:
+    resolution: {integrity: sha512-Y08xdjFpwH7FjX76Aj29K6hm/49nGg2/hP7fOH4IkN+jTbENeKiAR2wuS9EEEiHFLWOis9ZHhfaBQ1PEryxSxg==}
+    dependencies:
+      '@arque/core': 0.2.2
+      debug: 4.3.4
+      lru-cache: 10.0.1
+      mongoose: 7.6.0
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
       - supports-color
     dev: false
 
@@ -6071,6 +6101,26 @@ packages:
 
   /mongoose@7.6.0:
     resolution: {integrity: sha512-ztQ12rm0BQN5i7LB6xhWX4l9a9w2aa3jEwa/mM2vAutYJRyAwOzcusvKJBULMzFHyUDBOVW15grisexypgMIWA==}
+    engines: {node: '>=14.20.1'}
+    dependencies:
+      bson: 5.5.0
+      kareem: 2.5.1
+      mongodb: 5.9.0
+      mpath: 0.9.0
+      mquery: 5.0.0
+      ms: 2.1.3
+      sift: 16.0.1
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - supports-color
+    dev: false
+
+  /mongoose@7.6.1:
+    resolution: {integrity: sha512-Iflr60FL7mabBdgAtumLTwEGdZGV6IKHfF7F75En2JWpPitorwQeCFqWPcPHRnBxncKANl3gwI9nh2Yb4y3/sA==}
     engines: {node: '>=14.20.1'}
     dependencies:
       bson: 5.5.0
