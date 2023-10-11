@@ -2,7 +2,6 @@ import assert from 'assert';
 import { ConfigAdapter, StoreAdapter, StreamAdapter, Subscriber } from './adapters';
 import { ProjectionEventHandler, Event } from './types';
 import debug from 'debug';
-import R from 'ramda';
 
 export class Projection<
   TState = unknown,
@@ -33,7 +32,7 @@ export class Projection<
     private readonly _state: TState,
   ) {
     this.eventHandlers = new Map(
-      R.map((item) => [item.type, item], eventHandlers),
+      eventHandlers.map(item => [item.type, item])
     );
   }
 
@@ -77,7 +76,7 @@ export class Projection<
 
     await this.config.saveStream({
       id: this.id,
-      events: [...new Set(R.pluck('type', [...this.eventHandlers.values()])).values()],
+      events: [...new Set([...this.eventHandlers.values()].map(item => item.type)).values()],
     });
 
     this.subscriber = await this.stream.subscribe(
