@@ -40,7 +40,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
 
     this.kafka = new Kafka({
       brokers: this.opts.brokers,
-      logLevel: logLevel.ERROR,
+      logLevel: logLevel.INFO,
     });
 
     this.joser = new Joser({
