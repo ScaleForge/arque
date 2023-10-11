@@ -70,7 +70,7 @@ importers:
         version: link:../packages/mongo-config-adapter
       '@arque/mongo-store-adapter':
         specifier: 0.2.3
-        version: link:../packages/mongo-store-adapter
+        version: 0.2.3
       debug:
         specifier: 4.3.4
         version: 4.3.4
@@ -167,6 +167,36 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.19
     dev: true
+
+  /@arque/core@0.2.2:
+    resolution: {integrity: sha512-xNHerWKa2KO+yR4pMb49uLAXtenCPajCFkjQsmB4THnQ7c/kykLWe9h4CsA4+Hk3/XggcFLUIkeyNvJIrNBdvg==}
+    dependencies:
+      async-mutex: 0.4.0
+      bs58: 5.0.0
+      debug: 4.3.4
+      exponential-backoff: 3.1.1
+      lru-cache: 10.0.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /@arque/mongo-store-adapter@0.2.3:
+    resolution: {integrity: sha512-zCW9R8WGAVGrZNKnRTqz1RQ9j6Js/BxmpSYeNEVwuayFMIDZXplJ1Wh3XfgwRy9O9GotKgn+4VigF7QhyH4Evw==}
+    dependencies:
+      '@arque/core': 0.2.2
+      '@scaleforge/joser': 0.4.0
+      debug: 4.3.4
+      decimal.js: 10.4.3
+      exponential-backoff: 3.1.1
+      mongoose: 7.6.0
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - supports-color
+    dev: false
 
   /@babel/code-frame@7.22.13:
     resolution: {integrity: sha512-XktuhWlJ5g+3TJXc5upd9Ks1HutSArik6jf2eAjYFyIOf4ej3RN+184cZbzDvbPnuTJIUhPKKJE3cIsYTiAT3w==}
