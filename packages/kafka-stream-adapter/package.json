@@ -1,6 +1,6 @@
 {
   "name": "@arque/kafka-stream-adapter",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
   "license": "MIT",
