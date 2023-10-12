@@ -109,7 +109,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
           numOfAttempts: opts?.retry?.numOfAttempts ?? 24,
           startingDelay: opts?.retry?.startingDelay ?? 100,
           timeMultiple: opts?.retry?.timeMultiple ?? 2,
-          retry: opts?.retry?.retry,
+          retry: opts?.retry?.retry ?? (() => Promise.resolve(true)),
         });
       },
     });
