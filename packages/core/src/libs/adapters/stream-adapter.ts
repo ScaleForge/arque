@@ -18,7 +18,11 @@ export interface StreamAdapter {
   subscribe(
     stream: string,
     handle: (event: Event) => Promise<void>,
-    opts?: { raw?: true }): Promise<Subscriber>;
+    opts?: { raw?: true, retry?: {
+      maxDelay?: number;
+      numOfAttempts?: number;
+      retry?: (err: Error) => Promise<boolean>;
+    } }): Promise<Subscriber>;
   
   close(): Promise<void>;
 }

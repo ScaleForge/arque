@@ -6,7 +6,7 @@ import { debug } from 'debug';
 import { Joser, Serializer } from '@scaleforge/joser';
 import assert from 'assert';
 import { Event  } from './libs/types';
-import { backOff, BackoffOptions } from 'exponential-backoff';
+import { backOff } from 'exponential-backoff';
 
 type Options = {
   prefix: string;
@@ -55,13 +55,17 @@ export class KafkaStreamAdapter implements StreamAdapter {
   async subscribe(
     stream: string,
     handle: (event: Event) => Promise<void>,
-    opts?: { raw?: true, retry?: BackoffOptions },
+    opts?: { raw?: true, retry?: {
+      maxDelay?: number;
+      numOfAttempts?: number;
+      retry?: (err: Error) => Promise<boolean>;
+    } },
   ): Promise<Subscriber> {
-    const { logger, joser } = this;
-
     const topic = `${this.opts.prefix}.${stream}`;
 
     this.logger.info(`subscribing to topic: topic=${topic}`);
+
+    const { logger, joser } = this;
 
     const consumer = this.kafka.consumer({
       groupId: topic,
@@ -103,13 +107,21 @@ export class KafkaStreamAdapter implements StreamAdapter {
         await backOff(async () => {
           await handle(event);
         }, {
-          delayFirstAttempt: opts?.retry?.delayFirstAttempt ?? false,
-          jitter: opts?.retry?.jitter ?? 'full',
+          delayFirstAttempt: false,
+          jitter: 'full',
+          startingDelay: 100,
+          timeMultiple: 2,
           maxDelay: opts?.retry?.maxDelay ?? 6400,
           numOfAttempts: opts?.retry?.numOfAttempts ?? 24,
-          startingDelay: opts?.retry?.startingDelay ?? 100,
-          timeMultiple: opts?.retry?.timeMultiple ?? 2,
-          retry: opts?.retry?.retry ?? (() => Promise.resolve(true)),
+          retry: async (err: Error) => {
+            logger.warn(`event handler error: error=${err.message}`);
+
+            if (opts?.retry?.retry) {
+              return opts.retry.retry(err);
+            }
+
+            return true;
+          },
         });
       },
     });
