@@ -59,8 +59,12 @@ export class KafkaStreamAdapter implements StreamAdapter {
   ): Promise<Subscriber> {
     const { logger, joser } = this;
 
+    const topic = `${this.opts.prefix}.${stream}`;
+
+    this.logger.info(`subscribing to topic: topic=${topic}`);
+
     const consumer = this.kafka.consumer({
-      groupId: `${this.opts.prefix}.${stream}`,
+      groupId: topic,
       allowAutoTopicCreation: true,
       retry: {
         maxRetryTime: 1600,
@@ -73,7 +77,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
 
     await consumer.connect();
 
-    await consumer.subscribe({ topic: `${this.opts.prefix}.${stream}`, fromBeginning: true });
+    await consumer.subscribe({ topic, fromBeginning: true });
 
     consumer.on('consumer.group_join', (event) => {
       this.logger.verbose(`consumer.group_join: ${JSON.stringify(event)}`);
