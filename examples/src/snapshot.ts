@@ -69,6 +69,8 @@ async function main() {
 
   await WalletAggregateFactory.load(id);
 
+
+
   assert(aggregate.state.balance === 10 * Math.ceil(count / 2) - Math.floor(count / 2) * 5);
   assert(aggregate.version === count);
 

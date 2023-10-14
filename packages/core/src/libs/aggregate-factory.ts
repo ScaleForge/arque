@@ -30,9 +30,11 @@ export class AggregateFactory<T extends Aggregate> {
     opts?: Partial<Options<T>>,
   ) {
     this.opts = {
-      defaultState: null,
+      defaultState: opts?.defaultState ?? null,
       cacheMax: opts?.cacheMax ?? 256,
       cacheTTL: opts?.cacheTTL ?? 86400000, // 24 hours
+      shouldTakeSnapshot: opts?.shouldTakeSnapshot,
+      snapshotInterval: opts?.snapshotInterval ?? 100,
     };
 
     this.cache = new LRUCache({
@@ -66,7 +68,7 @@ export class AggregateFactory<T extends Aggregate> {
           this.eventHandlers,
           id,
           0,
-          state as never,
+          state,
           {
             shouldTakeSnapshot: this.opts.shouldTakeSnapshot,
             snapshotInterval: this.opts.snapshotInterval,

@@ -59,8 +59,8 @@ export class Aggregate<
     );
 
     this.opts = {
-      snapshotInterval: 100,
       ...opts,
+      snapshotInterval: opts?.snapshotInterval ?? 100,
     };
   }
 
@@ -227,7 +227,7 @@ export class Aggregate<
         firstRun = false;
 
         const timestamp = new Date();
-  
+
         const event = await handler.handle(
           {
             aggregate: {

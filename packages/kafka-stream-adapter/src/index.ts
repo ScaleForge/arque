@@ -114,7 +114,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
           maxDelay: opts?.retry?.maxDelay ?? 6400,
           numOfAttempts: opts?.retry?.numOfAttempts ?? 24,
           retry: async (err: Error) => {
-            logger.warn(`event handler error: error=${err.message}`);
+            logger.warn(`retrying: error=${err.message}`);
 
             if (opts?.retry?.retry) {
               return opts.retry.retry(err);
