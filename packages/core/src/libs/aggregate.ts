@@ -18,6 +18,8 @@ export type AggregateOptions<TState> = {
     state: TState;
   }) => boolean;
   readonly snapshotInterval?: number;
+  readonly serializeState: (state: TState) => unknown;
+  readonly deserializeState: (state: unknown) => TState;
 };
 
 export class Aggregate<
@@ -61,6 +63,8 @@ export class Aggregate<
     this.opts = {
       ...opts,
       snapshotInterval: opts?.snapshotInterval ?? 100,
+      serializeState: opts?.serializeState ?? (state => state),
+      deserializeState: opts?.deserializeState ?? (state => state as TState),
     };
   }
 
@@ -142,7 +146,7 @@ export class Aggregate<
     });
 
     if (snapshot) {
-      this._state = snapshot.state;
+      this._state = this.opts.deserializeState(snapshot.state);
       this._version = snapshot.aggregate.version;
     }
 
@@ -202,7 +206,7 @@ export class Aggregate<
           id: this.id,
           version: this.version,
         },
-        state: this.state,
+        state: this.opts.serializeState(this.state),
         timestamp: params.timestamp,
       });
     }

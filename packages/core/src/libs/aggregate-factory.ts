@@ -30,6 +30,7 @@ export class AggregateFactory<T extends Aggregate> {
     opts?: Partial<Options<T>>,
   ) {
     this.opts = {
+      ...opts,
       defaultState: opts?.defaultState ?? null,
       cacheMax: opts?.cacheMax ?? 256,
       cacheTTL: opts?.cacheTTL ?? 86400000, // 24 hours
@@ -72,6 +73,8 @@ export class AggregateFactory<T extends Aggregate> {
           {
             shouldTakeSnapshot: this.opts.shouldTakeSnapshot,
             snapshotInterval: this.opts.snapshotInterval,
+            serializeState: this.opts.serializeState,
+            deserializeState: this.opts.deserializeState,
           },
         ) as never as T;
 
