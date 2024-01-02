@@ -83,7 +83,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     return this.connectionPromise;
   }
 
-  private async model(model: keyof typeof schema) {
+  public async model(model: keyof typeof schema) {
     const connection = await this.connection();
 
     return connection.model(model, schema[model]);
@@ -243,14 +243,45 @@ export class MongoStoreAdapter implements StoreAdapter {
     });
   }
 
-  async listEvents<TEvent = Event>(params: { aggregate: { id: Buffer; version?: number; }; }): Promise<AsyncIterableIterator<TEvent>> {
+  async listEvents<TEvent = Event>(params: {
+    aggregate: {
+      id: Buffer;
+      version?: number;
+    };
+  }): Promise<AsyncIterableIterator<TEvent>>;
+
+  async listEvents<TEvent = Event>(params: {
+    id?: EventId;
+    type?: number | Array<number>
+  }): Promise<AsyncIterableIterator<TEvent>>;
+
+  async listEvents<TEvent = Event>(params): Promise<AsyncIterableIterator<TEvent>> {
     const EventModel = await this.model('Event');
 
-    const cursor = EventModel.find({
-      'aggregate.id': params.aggregate.id,
-      'aggregate.version': { $gt: params.aggregate.version ?? 0 },
-    }).cursor({
-      batchSize: 100,
+    const query = {};
+
+    if (params.aggregate) {
+      query['aggregate.id'] = params.aggregate.id;
+
+      if (params.aggregate.version) {
+        query['aggregate.version'] = { $gt: params.aggregate.version };
+      }
+    } else {
+      if (params.id) {
+        query['_id'] = {
+          $gt: params.id.buffer,
+        };
+      }
+
+      if (params.type) {
+        query['type'] = typeof params.type === 'number' ? params.type : {
+          $in: params.type,
+        };
+      }
+    }
+
+    const cursor = EventModel.find(query).sort({ _id: 1 }).cursor({
+      batchSize: 256,
     });
 
     const { joser } = this;

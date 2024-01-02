@@ -1,3 +1,4 @@
+import { EventId } from '../event-id';
 import { Event } from '../types';
 
 export class AggregateVersionConflictError extends Error {
@@ -33,6 +34,11 @@ export interface StoreAdapter {
       id: Buffer;
       version?: number;
     };
+  }): Promise<AsyncIterableIterator<TEvent>>;
+
+  listEvents<TEvent = Event>(params: {
+    id?: EventId;
+    type?: number | Array<number>
   }): Promise<AsyncIterableIterator<TEvent>>;
 
   saveSnapshot(params: Snapshot): Promise<void>;
