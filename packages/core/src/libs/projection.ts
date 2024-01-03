@@ -7,7 +7,7 @@ export class Projection<
   TState = unknown,
   TEventHandler extends ProjectionEventHandler<Event, TState> = ProjectionEventHandler<Event, TState>,
 > {
-  private readonly logger = {
+  protected readonly logger = {
     info: debug('Broker:info'),
     error: debug('Broker:error'),
     warn: debug('Broker:warn'),
@@ -30,6 +30,9 @@ export class Projection<
     eventHandlers: TEventHandler[],
     private _id: string,
     private readonly _state: TState,
+    private readonly opts?: {
+      disableSaveStream?: true;
+    }
   ) {
     this.eventHandlers = new Map(
       eventHandlers.map(item => [item.type, item])
@@ -74,10 +77,12 @@ export class Projection<
       throw new Error('already started');
     }
 
-    await this.config.saveStream({
-      id: this.id,
-      events: [...new Set([...this.eventHandlers.values()].map(item => item.type)).values()],
-    });
+    if (!this.opts?.disableSaveStream) {
+      await this.config.saveStream({
+        id: this.id,
+        events: [...new Set([...this.eventHandlers.values()].map(item => item.type)).values()],
+      });
+    }
 
     this.subscriber = await this.stream.subscribe(
       this.id,
