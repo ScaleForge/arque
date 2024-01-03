@@ -285,7 +285,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     });
 
     const { joser } = this;
-
+    
     return {
       async next() {
         const doc = await cursor.next();

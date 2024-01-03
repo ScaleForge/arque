@@ -44,6 +44,43 @@ describe('MongoStoreAdapter#listEvents', () => {
   });
 
   test.concurrent('list events', async () => {
+    const { store, teardown } = await setupFixture();
+
+    await store.saveEvents({
+      aggregate: {
+        id: randomBytes(13),
+        version: 1,
+      },
+      timestamp: new Date(),
+      events: R.times(() => ({
+        ...R.pick(['id', 'type', 'body', 'meta'], generateEvent()),
+        type: 10,
+      }), 100),
+    });
+
+    const events = await store.listEvents({
+      type: 10,
+    });
+
+    let version = 1;
+    for await (const event of events) {
+      expect(event).toMatchObject({
+        id: expect.any(EventId),
+        type: 10,
+        aggregate: {
+          id: expect.any(Buffer),
+          version: version++,
+        },
+        body: expect.any(Object),
+        meta: expect.any(Object),
+        timestamp: expect.any(Date),
+      });
+    }
+
+    await teardown();
+  });
+
+  test.concurrent('list events', async () => {
     const id = randomBytes(13);
 
     const { store, teardown } = await setupFixture();
