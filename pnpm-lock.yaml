@@ -102,8 +102,8 @@ importers:
         specifier: ^0.4.1
         version: link:../core
       '@scaleforge/joser':
-        specifier: 0.5.0
-        version: 0.5.0
+        specifier: 0.5.1
+        version: 0.5.1
       debug:
         specifier: 4.3.4
         version: 4.3.4
@@ -141,8 +141,8 @@ importers:
         specifier: ^0.4.1
         version: link:../core
       '@scaleforge/joser':
-        specifier: 0.5.0
-        version: 0.5.0
+        specifier: 0.5.1
+        version: 0.5.1
       debug:
         specifier: 4.3.4
         version: 4.3.4
@@ -2578,8 +2578,8 @@ packages:
     resolution: {integrity: sha512-u8+7uWgMM30ck9u2xKRuoC5h5ZAJ6IC3rtKGK+oZ/ewNgCsNEyrYKCZ+vR4nALdhRDf/hC2oiJJvjz9Qenvztg==}
     dev: false
 
-  /@scaleforge/joser@0.5.0:
-    resolution: {integrity: sha512-kcZAQxq4O9BT1TR++UYAWJOYtak+n2DxQB8032Entii9DGbO7EdI+lsuGWLDeT8D7W7rqOIfGXxZoHh3E7tA2w==}
+  /@scaleforge/joser@0.5.1:
+    resolution: {integrity: sha512-+wg+78MX9zgxPuZ9N3LyplHAfdvTfAy/rObcOBHGO4UsRfQLzAhh2SPPEledUD7vr/PBLbPTzEmIofkWrcbkBQ==}
     dev: false
 
   /@sigstore/bundle@1.1.0:
