@@ -22,11 +22,11 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "async-mutex": "0.4.0",
+    "async-mutex": "0.5.0",
     "bs58": "5.0.0",
     "debug": "4.3.4",
     "exponential-backoff": "3.1.1",
-    "lru-cache": "10.0.1"
+    "lru-cache": "10.2.2"
   },
   "publishConfig": {
     "access": "public"

@@ -1,5 +1,5 @@
 import bs58 from 'bs58';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 
 export class EventId {
   private _buffer: Buffer;

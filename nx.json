@@ -10,7 +10,32 @@
       }
     }
   },
-  "targetDefaults": {},
+  "targetDefaults": {
+    "test": {
+      "cache": true,
+      "dependsOn": [
+        "^test"
+      ]
+    },
+    "build": {
+      "cache": true,
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
+    "prepublishOnly": {
+      "cache": true,
+      "dependsOn": [
+        "^prepublishOnly"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    }
+  },
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
     "default": [
