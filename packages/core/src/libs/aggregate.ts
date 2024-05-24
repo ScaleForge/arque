@@ -268,7 +268,7 @@ export class Aggregate<
           return err instanceof AggregateVersionConflictError;
         },
       });
-    } finally{
+    } finally {
       release();
     }
   }

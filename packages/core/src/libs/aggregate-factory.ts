@@ -22,6 +22,17 @@ export class AggregateFactory<T extends Aggregate> {
 
   private readonly opts: Options<T>;
 
+  /**
+   * @param store 
+   * @param stream 
+   * @param commandHandlers 
+   * @param eventHandlers 
+   * @param opts.defaultState - The default state of the aggregate. default: `null`
+   * @param opts.cacheMax - The maximum number of aggregates to cache. default: `2046`
+   * @param opts.cacheTTL - The time-to-live of the cache in milliseconds. default: `172800000` (48 hours)
+   * @param opts.shouldTakeSnapshot - A function that determines if a snapshot should be taken. default: `undefined`
+   * @param opts.snapshotInterval - The interval at which snapshots should be taken. default: `20`
+   */
   constructor(
     private readonly store: StoreAdapter,
     private readonly stream: StreamAdapter,
@@ -32,10 +43,10 @@ export class AggregateFactory<T extends Aggregate> {
     this.opts = {
       ...opts,
       defaultState: opts?.defaultState ?? null,
-      cacheMax: opts?.cacheMax ?? 256,
-      cacheTTL: opts?.cacheTTL ?? 86400000, // 24 hours
+      cacheMax: opts?.cacheMax ?? 2046,
+      cacheTTL: opts?.cacheTTL ?? 172800000, // 48 hours
       shouldTakeSnapshot: opts?.shouldTakeSnapshot,
-      snapshotInterval: opts?.snapshotInterval ?? 100,
+      snapshotInterval: opts?.snapshotInterval ?? 20,
     };
 
     this.cache = new LRUCache({
