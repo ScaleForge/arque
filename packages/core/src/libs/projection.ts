@@ -8,10 +8,10 @@ export class Projection<
   TEventHandler extends ProjectionEventHandler<Event, TState> = ProjectionEventHandler<Event, TState>,
 > {
   protected readonly logger = {
-    info: debug('Broker:info'),
-    error: debug('Broker:error'),
-    warn: debug('Broker:warn'),
-    verbose: debug('Broker:verbose'),
+    info: debug('broker:info'),
+    error: debug('broker:error'),
+    warn: debug('broker:warn'),
+    verbose: debug('broker:verbose'),
   };
 
   private readonly eventHandlers: Map<

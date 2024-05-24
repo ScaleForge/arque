@@ -1,5 +1,5 @@
 node_modules/
 packages/*/node_modules/
 packages/*/dist/
-.npmrc
 .nx/cache
+.env
