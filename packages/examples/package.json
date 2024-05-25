@@ -1,0 +1,37 @@
+{
+  "name": "@arque/examples",
+  "version": "0.4.0",
+  "author": "ScaleForge",
+  "homepage": "https://github.com/ScaleForge/arque#README.md",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ScaleForge/arque.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ScaleForge/arque/issues"
+  },
+  "scripts": {
+    "build": "rimraf dist && tsc --project tsconfig.build.json",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/index.js",
+    "message": "echo $NODE_ENV"
+  },
+  "dependencies": {
+    "@arque/core": "0.4.3",
+    "@arque/mongo-store-adapter": "0.4.5",
+    "@clack/prompts": "0.7.0",
+    "decimal.js": "10.4.3",
+    "get-port-please": "3.1.2",
+    "mongodb-memory-server": "9.2.0",
+    "ora": "5.4.1",
+    "ramda": "0.30.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

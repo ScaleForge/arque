@@ -5,6 +5,7 @@ import { backOff } from 'exponential-backoff';
 import { Joser, Serializer } from '@scaleforge/joser';
 import debug from 'debug';
 import assert from 'assert';
+import R from 'ramda';
 
 type Options = {
   readonly uri: string;
@@ -28,7 +29,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
   private readonly opts: Options;
 
-  private connectionPromise: Promise<Connection>;
+  private _connection: Promise<Connection>;
 
   constructor(opts?: Partial<Options>) {
     this.opts = {
@@ -36,8 +37,8 @@ export class MongoStoreAdapter implements StoreAdapter {
       retryStartingDelay: opts?.retryStartingDelay ?? 100,
       retryMaxDelay: opts?.retryMaxDelay ?? 1600,
       retryMaxAttempts: opts?.retryMaxAttempts ?? 10,
-      maxPoolSize: opts?.maxPoolSize ?? 10,
-      minPoolSize: opts?.minPoolSize ?? 2,
+      maxPoolSize: opts?.maxPoolSize ?? 100,
+      minPoolSize: opts?.minPoolSize ?? 20,
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 10000,
       serializers: opts?.serializers ?? [],
@@ -63,24 +64,30 @@ export class MongoStoreAdapter implements StoreAdapter {
 
 
   private async connection() {
-    if (!this.connectionPromise) {
-      this.connectionPromise = mongoose.createConnection(this.opts.uri, {
+    if (!this._connection) {
+      this._connection = mongoose.createConnection(this.opts.uri, {
         writeConcern: {
-          w: 1,
+          w: 'majority',
         },
-        readPreference: 'secondaryPreferred',
-        minPoolSize: this.opts.maxPoolSize,
+        readPreference: 'primary',
         maxPoolSize: this.opts.maxPoolSize,
+        minPoolSize: this.opts.minPoolSize,
         socketTimeoutMS: this.opts?.socketTimeoutMS,
         serverSelectionTimeoutMS: this.opts?.serverSelectionTimeoutMS,
-      }).asPromise().catch((err) => {
-        delete this.connectionPromise;
+      }).asPromise().then(async (connection) => {
+        const model = connection.model('Event', schema.Event);
+
+        await Promise.all(R.times(() => model.find({}).limit(20), (this.opts.maxPoolSize - this.opts.minPoolSize) / 2));
+
+        return connection;
+      }).catch((err) => {
+        delete this._connection;
 
         throw err;
       });
     }
 
-    return this.connectionPromise;
+    return this._connection;
   }
 
   public async model(model: keyof typeof schema) {
@@ -352,8 +359,8 @@ export class MongoStoreAdapter implements StoreAdapter {
   }
 
   async close(): Promise<void> {
-    if (this.connectionPromise) {
-      const connection = await this.connectionPromise;
+    if (this._connection) {
+      const connection = await this._connection;
 
       await connection.close();
     }

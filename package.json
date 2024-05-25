@@ -3,10 +3,7 @@
   "description": "The Event Sourcing library.",
   "scripts": {
     "test": "lerna run test",
-    "build": "lerna run build",
-    "example:basic-aggregate": "cd examples && npm run example:basic-aggregate",
-    "example:snapshot": "cd examples && npm run example:snapshot",
-    "example:projection": "cd examples && npm run example:projection"
+    "build": "lerna run build"
   },
   "license": "MIT",
   "devDependencies": {
