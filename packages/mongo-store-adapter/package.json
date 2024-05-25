@@ -26,7 +26,8 @@
     "debug": "4.3.4",
     "decimal.js": "10.4.3",
     "exponential-backoff": "3.1.1",
-    "mongoose": "8.4.0"
+    "mongoose": "8.4.0",
+    "ramda": "0.30.0"
   },
   "publishConfig": {
     "access": "public"
