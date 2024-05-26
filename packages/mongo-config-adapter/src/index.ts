@@ -14,23 +14,25 @@ export type MongoConfigAdapterOptions = Partial<Options>;
 
 export class MongoConfigAdapter implements ConfigAdapter {
   private readonly logger = {
-    info: debug('MongoStoreAdapter:info'),
-    error: debug('MongoStoreAdapter:error'),
-    warn: debug('MongoStoreAdapter:warn'),
-    verbose: debug('MongoStoreAdapter:verbose'),
+    info: debug('info:MongoStoreAdapter'),
+    error: debug('error:MongoStoreAdapter'),
+    warn: debug('warn:MongoStoreAdapter'),
+    verbose: debug('verbose:MongoStoreAdapter'),
   };
 
   private readonly opts: Options;
 
   private readonly cache: LRUCache<number, string[]>;
 
-  private connectionPromise: Promise<Connection>;
+  private _connection: Promise<Connection>;
+
+  private _init: Promise<void>;
 
   constructor(opts?: Partial<Options>) {
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
-      maxPoolSize: opts?.maxPoolSize ?? 10,
-      minPoolSize: opts?.minPoolSize ?? 2,
+      maxPoolSize: opts?.maxPoolSize ?? 100,
+      minPoolSize: opts?.minPoolSize ?? 10,
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 10000,
       cacheMax: opts?.cacheMax ?? 1000,
@@ -43,25 +45,43 @@ export class MongoConfigAdapter implements ConfigAdapter {
     });
   }
 
-  private async connection() {
-    if (!this.connectionPromise) {
-      this.connectionPromise = mongoose.createConnection(this.opts.uri, {
-        writeConcern: {
-          w: 1,
-        },
-        readPreference: 'secondaryPreferred',
-        minPoolSize: this.opts.maxPoolSize,
-        maxPoolSize: this.opts.maxPoolSize,
-        socketTimeoutMS: this.opts?.socketTimeoutMS,
-        serverSelectionTimeoutMS: this.opts?.serverSelectionTimeoutMS,
-      }).asPromise().catch((err) => {
-        delete this.connectionPromise;
+  public async init() {
+    if (!this._init) {
+      this._init = (async () => {
+        await this.connection();
+      })().catch((err) => {
+        delete this._init;
 
         throw err;
       });
     }
 
-    return this.connectionPromise;
+    await this._init;
+  }
+
+  private async connection() {
+    if (!this._connection) {
+      this._connection = (async () => {
+        const connection = await mongoose.createConnection(this.opts.uri, {
+          writeConcern: {
+            w: 'majority',
+          },
+          readPreference: 'secondaryPreferred',
+          minPoolSize: this.opts.minPoolSize,
+          maxPoolSize: this.opts.maxPoolSize,
+          socketTimeoutMS: this.opts?.socketTimeoutMS,
+          serverSelectionTimeoutMS: this.opts?.serverSelectionTimeoutMS,
+        }).asPromise();
+
+        return connection;
+      })().catch((err) => {
+        delete this._connection;
+
+        throw err;
+      });
+    }
+
+    return this._connection;
   }
 
   private async model(model: keyof typeof schema) {
@@ -110,8 +130,8 @@ export class MongoConfigAdapter implements ConfigAdapter {
   }
 
   async close(): Promise<void> {
-    if (this.connectionPromise) {
-      const connection = await this.connectionPromise;
+    if (this._connection) {
+      const connection = await this._connection;
 
       await connection.close();
     }

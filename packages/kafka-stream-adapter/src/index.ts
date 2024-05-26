@@ -4,9 +4,9 @@ import { deserialize, serialize } from './libs/serialization';
 import { murmurHash } from 'ohash';
 import { debug } from 'debug';
 import { Joser, Serializer } from '@scaleforge/joser';
-import assert from 'assert';
 import { Event  } from './libs/types';
 import { backOff } from 'exponential-backoff';
+import assert from 'assert';
 
 type Options = {
   prefix: string;
@@ -18,10 +18,10 @@ export type KafkaStreamAdapterOptions = Partial<Options>;
 
 export class KafkaStreamAdapter implements StreamAdapter {
   private readonly logger = {
-    info: debug('KafkaStreamAdapter:info'),
-    error: debug('KafkaStreamAdapter:error'),
-    warn: debug('KafkaStreamAdapter:warn'),
-    verbose: debug('KafkaStreamAdapter:verbose'),
+    info: debug('info:KafkaStreamAdapter'),
+    error: debug('error:KafkaStreamAdapter'),
+    warn: debug('warn:KafkaStreamAdapter'),
+    verbose: debug('verbose:KafkaStreamAdapter'),
   };
 
   private readonly kafka: Kafka;
@@ -30,7 +30,9 @@ export class KafkaStreamAdapter implements StreamAdapter {
 
   private readonly joser: Joser;
 
-  private producerPromise: Promise<Producer> | null = null;
+  private _producer: Promise<Producer>;
+
+  private _init: Promise<void>;
 
   constructor(opts?: Partial<Options>) {
     this.opts = {
@@ -133,19 +135,31 @@ export class KafkaStreamAdapter implements StreamAdapter {
     };
   }
 
-  private async producer(): Promise<Producer> {
-    if (!this.producerPromise) {
-      this.producerPromise = (async () => {
-        this.logger.info('connecting producer');
+  public async init() {
+    if (!this._init) {
+      this._init = (async () => {
+        await this.producer();
+      })().catch((err) => {
+        delete this._init;
 
+        throw err;
+      });
+    }
+
+    await this._init;
+  }
+
+  private async producer(): Promise<Producer> {
+    if (!this._producer) {
+      this._producer = (async () => {
         const producer = this.kafka.producer({
           allowAutoTopicCreation: true,
           idempotent: false,
           retry: {
-            maxRetryTime: 1600,
+            maxRetryTime: 800,
             factor: 0.5,
             initialRetryTime: 100,
-            retries: 10,
+            retries: 5,
             multiplier: 2,
           },
           createPartitioner: () => ({ partitionMetadata, message }) =>
@@ -154,21 +168,15 @@ export class KafkaStreamAdapter implements StreamAdapter {
     
         await producer.connect();
 
-        producer.on(producer.events.DISCONNECT, () => {
-          this.producerPromise = null;
-        });
-
-        this.logger.info('producer connected');
-
         return producer;
-      })().catch(err => {
-        this.producerPromise = null;
+      })().catch((err) => {
+        delete this._producer;
 
         throw err;
       });
     }
 
-    return this.producerPromise;
+    return this._producer;
   }
 
   async sendEvents(
@@ -198,14 +206,10 @@ export class KafkaStreamAdapter implements StreamAdapter {
   }
 
   async close(): Promise<void> {
-    this.logger.info('closing');
-
-    if (this.producerPromise) {
-      const producer = await this.producerPromise;
+    if (this._producer) {
+      const producer = await this._producer;
 
       await producer.disconnect();
     }
-
-    this.logger.info('closed');
   }
 }

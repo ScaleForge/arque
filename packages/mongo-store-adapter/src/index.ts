@@ -5,7 +5,6 @@ import { backOff } from 'exponential-backoff';
 import { Joser, Serializer } from '@scaleforge/joser';
 import debug from 'debug';
 import assert from 'assert';
-import R from 'ramda';
 
 type Options = {
   readonly uri: string;
@@ -19,10 +18,10 @@ export type MongoStoreAdapterOptions = Partial<Options>;
 
 export class MongoStoreAdapter implements StoreAdapter {
   private readonly logger = {
-    info: debug('MongoStoreAdapter:info'),
-    error: debug('MongoStoreAdapter:error'),
-    warn: debug('MongoStoreAdapter:warn'),
-    verbose: debug('MongoStoreAdapter:verbose'),
+    info: debug('info:MongoStoreAdapter'),
+    error: debug('error:MongoStoreAdapter'),
+    warn: debug('warn:MongoStoreAdapter'),
+    verbose: debug('verbose:MongoStoreAdapter'),
   };
 
   private readonly joser: Joser;
@@ -31,6 +30,8 @@ export class MongoStoreAdapter implements StoreAdapter {
 
   private _connection: Promise<Connection>;
 
+  private _init: Promise<void>;
+
   constructor(opts?: Partial<Options>) {
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
@@ -38,7 +39,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       retryMaxDelay: opts?.retryMaxDelay ?? 1600,
       retryMaxAttempts: opts?.retryMaxAttempts ?? 10,
       maxPoolSize: opts?.maxPoolSize ?? 100,
-      minPoolSize: opts?.minPoolSize ?? 20,
+      minPoolSize: opts?.minPoolSize ?? 10,
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 10000,
       serializers: opts?.serializers ?? [],
@@ -61,26 +62,36 @@ export class MongoStoreAdapter implements StoreAdapter {
     });
   }
 
+  public async init() {
+    if (!this._init) {
+      this._init = (async () => {
+        await this.connection();
+      })().catch((err) => {
+        delete this._init;
 
+        throw err;
+      });
+    }
+
+    await this._init;
+  }
 
   private async connection() {
     if (!this._connection) {
-      this._connection = mongoose.createConnection(this.opts.uri, {
-        writeConcern: {
-          w: 'majority',
-        },
-        readPreference: 'primary',
-        maxPoolSize: this.opts.maxPoolSize,
-        minPoolSize: this.opts.minPoolSize,
-        socketTimeoutMS: this.opts?.socketTimeoutMS,
-        serverSelectionTimeoutMS: this.opts?.serverSelectionTimeoutMS,
-      }).asPromise().then(async (connection) => {
-        const model = connection.model('Event', schema.Event);
+      this._connection = (async () => {
+        const connection = await mongoose.createConnection(this.opts.uri, {
+          writeConcern: {
+            w: 'majority',
+          },
+          readPreference: 'secondaryPreferred',
+          maxPoolSize: this.opts.maxPoolSize,
+          minPoolSize: this.opts.minPoolSize,
+          socketTimeoutMS: this.opts?.socketTimeoutMS,
+          serverSelectionTimeoutMS: this.opts?.serverSelectionTimeoutMS,
+        }).asPromise();
 
-        await Promise.all(R.times(() => model.find({}).limit(20), (this.opts.maxPoolSize - this.opts.minPoolSize) / 2));
-
-        return connection;
-      }).catch((err) => {
+        return connection
+      })().catch((err) => {
         delete this._connection;
 
         throw err;
@@ -91,7 +102,7 @@ export class MongoStoreAdapter implements StoreAdapter {
   }
 
   public async model(model: keyof typeof schema) {
-    const connection = await this.connection();
+    const connection = await this.connection();;
 
     return connection.model(model, schema[model]);
   }
@@ -365,5 +376,4 @@ export class MongoStoreAdapter implements StoreAdapter {
       await connection.close();
     }
   }
-
 }

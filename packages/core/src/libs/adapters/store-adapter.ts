@@ -19,6 +19,8 @@ export type Snapshot<TState = unknown> = {
 };
 
 export interface StoreAdapter {
+  init(): Promise<void>;
+
   saveEvents(params: {
     aggregate: {
       id: Buffer;

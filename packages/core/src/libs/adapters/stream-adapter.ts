@@ -7,6 +7,8 @@ export interface Subscriber {
 }
 
 export interface StreamAdapter {
+  init(): Promise<void>;
+
   sendEvents(
     events: {
       stream: string;

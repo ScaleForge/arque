@@ -1,4 +1,6 @@
 export interface ConfigAdapter {
+  init(): Promise<void>;
+
   saveStream(params: {
     id: string;
     events: number[];
