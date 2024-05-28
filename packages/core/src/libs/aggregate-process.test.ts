@@ -84,19 +84,19 @@ describe('Aggregate#process', () => {
     
     expect(aggregate.state).toEqual({ balance: 10 });
     expect(aggregate.version).toEqual(1);
-    expect(store.listEvents).toBeCalledWith({
+    expect(store.listEvents).toHaveBeenCalledWith({
       aggregate: {
         id,
         version: 0,
       },
     });
-    expect(store.findLatestSnapshot).toBeCalledWith({
+    expect(store.findLatestSnapshot).toHaveBeenCalledWith({
       aggregate: {
         id,
         version: 0,
       },
     });
-    expect(store.saveEvents).toBeCalledWith(expect.objectContaining({
+    expect(store.saveEvents).toHaveBeenCalledWith(expect.objectContaining({
       aggregate: {
         id,
         version: 1,
@@ -134,7 +134,7 @@ describe('Aggregate#process', () => {
     await expect(aggregate.process({
       type: CommandType.UpdateBalance,
       args: [{ amount: -10 }],
-    })).rejects.toThrowError('insufficient balance');
+    })).rejects.toThrow('insufficient balance');
     
     expect(aggregate.state).toEqual({ balance: 0 });
     expect(aggregate.version).toEqual(0);
@@ -186,10 +186,10 @@ describe('Aggregate#process', () => {
     
     expect(aggregate.state).toEqual({ balance: R.sum(values) });
     expect(aggregate.version).toEqual(values.length);
-    expect(store.listEvents).toBeCalledTimes(values.length);
-    expect(store.findLatestSnapshot).toBeCalledTimes(values.length);
-    expect(store.saveEvents).toBeCalledTimes(values.length);
-    expect(stream.sendEvents).toBeCalledTimes(values.length);
+    expect(store.listEvents).toHaveBeenCalledTimes(values.length);
+    expect(store.findLatestSnapshot).toHaveBeenCalledTimes(values.length);
+    expect(store.saveEvents).toHaveBeenCalledTimes(values.length);
+    expect(stream.sendEvents).toHaveBeenCalledTimes(values.length);
   });
 
   test.concurrent('aggregate version conflict', async () => {
@@ -237,10 +237,10 @@ describe('Aggregate#process', () => {
 
     expect(aggregate.state).toEqual({ balance: 115 });
     expect(aggregate.version).toEqual(6);
-    expect(store.listEvents).toBeCalledTimes(2);
-    expect(store.findLatestSnapshot).toBeCalledTimes(2);
-    expect(store.saveEvents).toBeCalledTimes(2);
-    expect(stream.sendEvents).toBeCalledTimes(1);
+    expect(store.listEvents).toHaveBeenCalledTimes(2);
+    expect(store.findLatestSnapshot).toHaveBeenCalledTimes(2);
+    expect(store.saveEvents).toHaveBeenCalledTimes(2);
+    expect(stream.sendEvents).toHaveBeenCalledTimes(1);
   });
 
   test.concurrent('snapshot', async () => {
@@ -279,10 +279,10 @@ describe('Aggregate#process', () => {
     
     expect(aggregate.state).toEqual({ balance: 10 * Math.ceil(count / 2) - 5 * Math.floor(count / 2) });
     expect(aggregate.version).toEqual(count);
-    expect(store.listEvents).toBeCalledTimes(count);
-    expect(store.findLatestSnapshot).toBeCalledTimes(count);
-    expect(store.saveEvents).toBeCalledTimes(count);
-    expect(stream.sendEvents).toBeCalledTimes(count);
-    expect(store.saveSnapshot).toBeCalledTimes(Math.floor(count / 10));
+    expect(store.listEvents).toHaveBeenCalledTimes(count);
+    expect(store.findLatestSnapshot).toHaveBeenCalledTimes(count);
+    expect(store.saveEvents).toHaveBeenCalledTimes(count);
+    expect(stream.sendEvents).toHaveBeenCalledTimes(count);
+    expect(store.saveSnapshot).toHaveBeenCalledTimes(Math.floor(count / 10));
   });
 });

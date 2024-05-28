@@ -2,6 +2,7 @@
 import { Mutex } from 'async-mutex';
 import { backOff } from 'exponential-backoff';
 import assert from 'assert';
+import { debug } from 'debug';
 import { Event, EventHandler, CommandHandler, Command } from './types';
 import { EventId } from './event-id';
 import { AggregateVersionConflictError, StoreAdapter } from './adapters/store-adapter';
@@ -27,6 +28,14 @@ export class Aggregate<
   TCommandHandler extends CommandHandler<Command, Event, TState> = CommandHandler<Command, Event, TState>,
   TEventHandler extends EventHandler<Event, TState> = EventHandler<Event, TState>,
 > {
+  private readonly logger = {
+    info: debug('info:Aggregate'),
+    error: debug('error:Aggregate'),
+    warn: debug('warn:Aggregate'),
+    verbose: debug('verbose:Aggregate'),
+    debug: debug('debug:Aggregate'),
+  };
+
   private mutex: Mutex;
 
   private commandHandlers: Map<
@@ -138,24 +147,32 @@ export class Aggregate<
   }
 
   private async _reload() {
+    let hrtime: [number, number];
+
+    hrtime = process.hrtime();
     const snapshot = await this.store.findLatestSnapshot<TState>({
       aggregate: {
         id: this.id,
         version: this.version,
       },
     });
+    this.logger.debug(`findLatestSnapshot: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     if (snapshot) {
       this._state = this.opts.deserializeState(snapshot.state);
       this._version = snapshot.aggregate.version;
     }
 
-    await this.digest(await this.store.listEvents({
+    hrtime = process.hrtime();
+    const events = await this.store.listEvents({
       aggregate: {
         id: this.id,
         version: this.version,
       },
-    }));
+    });
+    this.logger.debug(`listEvents: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
+
+    await this.digest(events);
   }
 
   public async reload() {
@@ -176,7 +193,11 @@ export class Aggregate<
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
   }, ctx?: Buffer) {
+    let hrtime: [number, number];
+
+    hrtime = process.hrtime();
     await this.store.saveEvents(params);
+    this.logger.debug(`saveEvents: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     const events = params.events.map((item, index) => ({
       ...item,
@@ -191,16 +212,19 @@ export class Aggregate<
       },
     }));
 
+    hrtime = process.hrtime();
     await this.stream.sendEvents([
       {
         stream: 'main',
         events,
       },
     ]);
+    this.logger.debug(`sendEvents: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     await this.digest(events);
 
     if (this.shoudTakeSnapshot()) {
+      hrtime = process.hrtime();
       await this.store.saveSnapshot({
         aggregate: {
           id: this.id,
@@ -209,26 +233,31 @@ export class Aggregate<
         state: this.opts.serializeState(this.state),
         timestamp: params.timestamp,
       });
+      this.logger.debug(`saveSnapshot: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
     }
   }
 
   public async process(command: ExtractCommand<TCommandHandler>, ctx?: Buffer, opts?: {
-    noInitialReload?: true,
+    noReload?: true,
     maxRetries?: number,
   }): Promise<void> {
     const handler = this.commandHandler(command.type);
 
     const release = await this.mutex.acquire();
 
-    let firstRun = true;
+    let first = true;
+
+    if (opts?.noReload !== true) {
+      await this._reload();
+    }
 
     try {
       await backOff(async () => {
-        if (!firstRun || !opts?.noInitialReload) {
+        if (!first) {
           await this._reload();
         }
 
-        firstRun = false;
+        first = false;
 
         const timestamp = new Date();
 
@@ -260,12 +289,18 @@ export class Aggregate<
       }, {
         delayFirstAttempt: false,
         jitter: 'full',
-        maxDelay: 1600,
-        numOfAttempts: opts?.maxRetries ?? 10,
+        maxDelay: 800,
+        numOfAttempts: opts?.maxRetries ?? 5,
         startingDelay: 100,
         timeMultiple: 2,
-        retry(err) {
-          return err instanceof AggregateVersionConflictError;
+        retry: (err) => {
+          if (err instanceof AggregateVersionConflictError) {
+            this.logger.warn(`retrying: error="${err.message}"`);
+
+            return true;
+          }
+          
+          return false;
         },
       });
     } finally {
