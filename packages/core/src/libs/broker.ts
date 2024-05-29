@@ -3,10 +3,11 @@ import debug from 'debug';
 
 export class Broker {
   private readonly logger = {
-    info: debug('broker:info'),
-    error: debug('broker:error'),
-    warn: debug('broker:warn'),
-    verbose: debug('broker:verbose'),
+    info: debug('info:Broker'),
+    error: debug('error:Broker'),
+    warn: debug('warn:Broker'),
+    verbose: debug('verbose:Broker'),
+    debug: debug('debug:Broker'),
   };
 
   private subscriber: Subscriber | null = null;

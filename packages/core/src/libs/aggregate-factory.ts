@@ -44,7 +44,7 @@ export class AggregateFactory<T extends Aggregate> {
       ...opts,
       defaultState: opts?.defaultState ?? null,
       cacheMax: opts?.cacheMax ?? 2046,
-      cacheTTL: opts?.cacheTTL ?? 172800000, // 48 hours
+      cacheTTL: opts?.cacheTTL ?? 172800000,
       shouldTakeSnapshot: opts?.shouldTakeSnapshot,
       snapshotInterval: opts?.snapshotInterval ?? 20,
     };
