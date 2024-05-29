@@ -22,7 +22,8 @@ export async function execute() {
 
   const mongo = await MongoMemoryReplSet.create({
     replSet: {
-      storageEngine: 'ephemeralForTest',
+      storageEngine: 'wiredTiger',
+      count: 3,
     },
     instanceOpts: [
       {
@@ -92,6 +93,7 @@ export async function execute() {
   });
 
   for (const _ of R.range(0, 100)) {
+    console.time('process');
     await aggregate.process({
       type: WalletAggregateCommandType.Credit,
       args: [
@@ -109,6 +111,7 @@ export async function execute() {
         },
       ],
     });
+    console.timeEnd('process');
   }
 
   assert(aggregate.state.balance.equals(new Decimal(505)));

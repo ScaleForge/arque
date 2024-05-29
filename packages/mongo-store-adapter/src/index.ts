@@ -41,7 +41,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       maxPoolSize: opts?.maxPoolSize ?? 100,
       minPoolSize: opts?.minPoolSize ?? 10,
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
-      serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 10000,
+      serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
       serializers: opts?.serializers ?? [],
     };
 
@@ -81,7 +81,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       this._connection = (async () => {
         const connection = await mongoose.createConnection(this.opts.uri, {
           writeConcern: {
-            w: 'majority',
+            w: 1,
           },
           readPreference: 'secondaryPreferred',
           maxPoolSize: this.opts.maxPoolSize,
@@ -124,7 +124,10 @@ export class MongoStoreAdapter implements StoreAdapter {
       },
       {
         upsert: true,
-      }
+        writeConcern: {
+          w: 1,
+        }
+      },
     );
   }
 
@@ -135,6 +138,9 @@ export class MongoStoreAdapter implements StoreAdapter {
       projection: params.projection,
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gte: params.aggregate.version },
+    }, {
+      limit: 1,
+      readPreference: 'secondaryPreferred',
     });
 
     return count === 0;
@@ -160,9 +166,8 @@ export class MongoStoreAdapter implements StoreAdapter {
 
       session.startTransaction({
         writeConcern: {
-          w: 'majority',
+          w: 1,
         },
-        readPreference: 'primary',
         retryWrites: true,
       });
 
@@ -187,7 +192,7 @@ export class MongoStoreAdapter implements StoreAdapter {
             throw err;
           }
         } else {
-          const { modifiedCount } = await AggregateModel.updateOne(
+          const { modifiedCount: count } = await AggregateModel.updateOne(
             {
               _id: params.aggregate.id,
               version: params.aggregate.version - 1,
@@ -203,7 +208,7 @@ export class MongoStoreAdapter implements StoreAdapter {
             }
           );
 
-          if (modifiedCount === 0) {
+          if (count === 0) {
             throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
           }
         }
@@ -223,15 +228,12 @@ export class MongoStoreAdapter implements StoreAdapter {
           timestamp: params.timestamp,
         })), { session });
 
+        await session.commitTransaction();
+
       } catch(err) {
         await session.abortTransaction();
-        await session.endSession();
 
         throw err;
-      }
-
-      try {
-        await session.commitTransaction();
       } finally {
         await session.endSession();
       }
@@ -298,7 +300,9 @@ export class MongoStoreAdapter implements StoreAdapter {
       }
     }
 
-    const cursor = EventModel.find(query).sort({ _id: 1 }).cursor({
+    const cursor = EventModel.find(query, null, {
+      readPreference: 'secondaryPreferred',
+    }).sort({ _id: 1 }).cursor({
       batchSize: 256,
     });
 
@@ -341,7 +345,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       state: this.joser.serialize(params.state as never),
     }], {
       validateBeforeSave: false,
-      w: 1,
+      w: 1
     });
   }
 
@@ -351,6 +355,8 @@ export class MongoStoreAdapter implements StoreAdapter {
     const snapshot = await SnapshotModel.findOne({
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gt: params.aggregate.version },
+    }, null, {
+      readPreference: 'secondaryPreferred',
     }).sort({
       'aggregate.version': -1,
     });

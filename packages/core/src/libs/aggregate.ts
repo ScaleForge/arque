@@ -241,9 +241,13 @@ export class Aggregate<
     noReload?: true,
     maxRetries?: number,
   }): Promise<void> {
+    let hrtime: [number, number];
+
     const handler = this.commandHandler(command.type);
 
+    hrtime = process.hrtime();
     const release = await this.mutex.acquire();
+    this.logger.debug(`mutex: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     let first = true;
 
@@ -273,6 +277,7 @@ export class Aggregate<
           ...command.args,
         );
 
+        hrtime = process.hrtime();
         await this.dispatch({
           aggregate: {
             id: this.id,
@@ -286,6 +291,7 @@ export class Aggregate<
           })),
           timestamp,
         }, ctx);
+        this.logger.debug(`dispatch: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
       }, {
         delayFirstAttempt: false,
         jitter: 'full',
