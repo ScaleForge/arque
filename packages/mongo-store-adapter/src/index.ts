@@ -227,13 +227,15 @@ export class MongoStoreAdapter implements StoreAdapter {
           }),
           timestamp: params.timestamp,
         })), { session });
-
-        await session.commitTransaction();
-
       } catch(err) {
         await session.abortTransaction();
+        await session.endSession();
 
         throw err;
+      }
+
+      try {
+        await session.commitTransaction();
       } finally {
         await session.endSession();
       }
