@@ -87,7 +87,7 @@ importers:
         specifier: ^0.8.0-alpha.1
         version: link:../core
       '@arque/mongo-store-adapter':
-        specifier: ^0.8.0-alpha.2
+        specifier: ^0.8.0-alpha.3
         version: link:../mongo-store-adapter
       '@clack/prompts':
         specifier: 0.7.0
