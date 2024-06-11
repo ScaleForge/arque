@@ -23,7 +23,7 @@
     "@arque/core": "^0.8.0-alpha.0",
     "debug": "4.3.4",
     "lru-cache": "10.2.2",
-    "mongoose": "8.4.0"
+    "mongoose": "8.4.1"
   },
   "publishConfig": {
     "access": "public"

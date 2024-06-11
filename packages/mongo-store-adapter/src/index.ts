@@ -5,6 +5,7 @@ import { backOff } from 'exponential-backoff';
 import { Joser, Serializer } from '@scaleforge/joser';
 import debug from 'debug';
 import assert from 'assert';
+import Queue from 'p-queue';
 
 type Options = {
   readonly uri: string;
@@ -28,18 +29,25 @@ export class MongoStoreAdapter implements StoreAdapter {
 
   private readonly opts: Options;
 
+  private readonly saveSnapshotQueue = new Queue({
+    autoStart: true,
+    concurrency: 1,
+  });
+
   private _connection: Promise<Connection>;
 
   private _init: Promise<void>;
 
   constructor(opts?: Partial<Options>) {
+    const maxPoolSize = opts?.maxPoolSize ?? 100;
+
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
       retryStartingDelay: opts?.retryStartingDelay ?? 100,
       retryMaxDelay: opts?.retryMaxDelay ?? 1600,
       retryMaxAttempts: opts?.retryMaxAttempts ?? 10,
-      maxPoolSize: opts?.maxPoolSize ?? 100,
-      minPoolSize: opts?.minPoolSize ?? 10,
+      maxPoolSize,
+      minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.5),
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
       serializers: opts?.serializers ?? [],
@@ -339,16 +347,20 @@ export class MongoStoreAdapter implements StoreAdapter {
     } as never;
   }
 
-  async saveSnapshot(params: Snapshot) {
+  async _saveSnapshot(params: Snapshot) {
     const SnapshotModel = await this.model('Snapshot');
 
     await SnapshotModel.create([{
       ...params,
-      state: this.joser.serialize(params.state as never),
+      state: this.joser.serialize(<never>params.state),
     }], {
       validateBeforeSave: false,
       w: 1
     });
+  }
+
+  async saveSnapshot(params: Snapshot) {
+    await this.saveSnapshotQueue.add(() => this._saveSnapshot(params));
   }
 
   async findLatestSnapshot<T = unknown>(params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<T> | null> {
@@ -378,6 +390,8 @@ export class MongoStoreAdapter implements StoreAdapter {
   }
 
   async close(): Promise<void> {
+    await this.saveSnapshotQueue.onIdle();
+
     if (this._connection) {
       const connection = await this._connection;
 

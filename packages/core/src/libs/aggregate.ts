@@ -224,8 +224,7 @@ export class Aggregate<
     await this.digest(events);
 
     if (this.shoudTakeSnapshot()) {
-      hrtime = process.hrtime();
-      await this.store.saveSnapshot({
+      this.store.saveSnapshot({
         aggregate: {
           id: this.id,
           version: this.version,
@@ -233,7 +232,6 @@ export class Aggregate<
         state: this.opts.serializeState(this.state),
         timestamp: params.timestamp,
       });
-      this.logger.debug(`saveSnapshot: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
     }
   }
 
