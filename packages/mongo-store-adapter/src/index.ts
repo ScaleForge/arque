@@ -47,7 +47,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       retryMaxDelay: opts?.retryMaxDelay ?? 1600,
       retryMaxAttempts: opts?.retryMaxAttempts ?? 10,
       maxPoolSize,
-      minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.5),
+      minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
       serializers: opts?.serializers ?? [],
