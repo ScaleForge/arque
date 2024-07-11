@@ -31,7 +31,5 @@
     "ora": "5.4.1",
     "ramda": "0.30.0"
   },
-  "publishConfig": {
-    "access": "public"
-  }
+  "private": true
 }
