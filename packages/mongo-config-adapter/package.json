@@ -1,6 +1,6 @@
 {
   "name": "@arque/mongo-config-adapter",
-  "version": "0.8.0-alpha.3",
+  "version": "0.8.0",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
   "license": "MIT",
@@ -20,13 +20,12 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "^0.8.0-alpha.1",
+    "@arque/core": "0.8.0-alpha.1",
     "debug": "4.3.5",
     "lru-cache": "10.2.2",
     "mongoose": "8.4.1"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "gitHead": "d2741b8272f4964a6b2182ad4fa8053057edb19c"
+  }
 }

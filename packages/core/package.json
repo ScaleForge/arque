@@ -1,6 +1,6 @@
 {
   "name": "@arque/core",
-  "version": "0.8.0-alpha.3",
+  "version": "0.8.0",
   "description": "`arque` core library",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
@@ -30,6 +30,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "gitHead": "d2741b8272f4964a6b2182ad4fa8053057edb19c"
+  }
 }

@@ -84,10 +84,10 @@ importers:
   packages/examples:
     dependencies:
       '@arque/core':
-        specifier: ^0.8.0-alpha.1
+        specifier: 0.8.0-alpha.1
         version: 0.8.0-alpha.1
       '@arque/mongo-store-adapter':
-        specifier: ^0.8.0-alpha.3
+        specifier: 0.8.0-alpha.3
         version: 0.8.0-alpha.3
       '@clack/prompts':
         specifier: 0.7.0
@@ -111,7 +111,7 @@ importers:
   packages/kafka-stream-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.8.0-alpha.1
+        specifier: 0.8.0-alpha.1
         version: 0.8.0-alpha.1
       '@scaleforge/joser':
         specifier: 0.5.1
@@ -135,7 +135,7 @@ importers:
   packages/mongo-config-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.8.0-alpha.1
+        specifier: 0.8.0-alpha.1
         version: 0.8.0-alpha.1
       debug:
         specifier: 4.3.5
@@ -150,7 +150,7 @@ importers:
   packages/mongo-store-adapter:
     dependencies:
       '@arque/core':
-        specifier: ^0.8.0-alpha.1
+        specifier: 0.8.0-alpha.1
         version: 0.8.0-alpha.1
       '@scaleforge/joser':
         specifier: 0.5.1
