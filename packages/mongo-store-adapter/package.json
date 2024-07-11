@@ -21,9 +21,9 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "^0.8.0-alpha.3",
+    "@arque/core": "^0.8.0-alpha.1",
     "@scaleforge/joser": "0.5.1",
-    "debug": "4.3.4",
+    "debug": "4.3.5",
     "decimal.js": "10.4.3",
     "exponential-backoff": "3.1.1",
     "mongoose": "8.4.1",

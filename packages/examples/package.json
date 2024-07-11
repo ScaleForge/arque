@@ -22,8 +22,8 @@
     "message": "echo $NODE_ENV"
   },
   "dependencies": {
-    "@arque/core": "^0.8.0-alpha.3",
-    "@arque/mongo-store-adapter": "^0.8.0-alpha.5",
+    "@arque/core": "^0.8.0-alpha.1",
+    "@arque/mongo-store-adapter": "^0.8.0-alpha.3",
     "@clack/prompts": "0.7.0",
     "decimal.js": "10.4.3",
     "get-port-please": "3.1.2",
