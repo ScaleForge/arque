@@ -7,6 +7,7 @@ import { Joser, Serializer } from '@scaleforge/joser';
 import { Event  } from './libs/types';
 import { backOff } from 'exponential-backoff';
 import assert from 'assert';
+import { inspect } from 'util';
 
 type Options = {
   prefix: string;
@@ -22,6 +23,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
     error: debug('error:KafkaStreamAdapter'),
     warn: debug('warn:KafkaStreamAdapter'),
     verbose: debug('verbose:KafkaStreamAdapter'),
+    debug: debug('debug:KafkaStreamAdapter'),
   };
 
   private readonly kafka: Kafka;
@@ -96,14 +98,17 @@ export class KafkaStreamAdapter implements StreamAdapter {
         const event = deserialize(message.value!, joser, opts?.raw);
 
         logger.verbose(
-          `event received: ${JSON.stringify({
+          `event received: event="${inspect({
             id: event.id.toString(),
             type: event.type,
             aggregate: {
               id: event.aggregate.id.toString('hex'),
               version: event.aggregate.version,
             },
-          })}`
+          }, {
+            breakLength: Infinity,
+            compact: true,
+          })}"`
         );
 
         await backOff(async () => {
@@ -116,7 +121,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
           maxDelay: opts?.retry?.maxDelay ?? 6400,
           numOfAttempts: opts?.retry?.numOfAttempts ?? 24,
           retry: async (err: Error) => {
-            logger.warn(`retrying: error=${err.message}`);
+            logger.warn(`retrying: error="${err.message}"`);
 
             if (opts?.retry?.retry) {
               return opts.retry.retry(err);

@@ -2,16 +2,18 @@ import assert from 'assert';
 import { ConfigAdapter, StoreAdapter, StreamAdapter, Subscriber } from './adapters';
 import { ProjectionEventHandler, Event } from './types';
 import debug from 'debug';
+import { inspect } from 'util';
 
 export class Projection<
   TState = unknown,
   TEventHandler extends ProjectionEventHandler<Event, TState> = ProjectionEventHandler<Event, TState>,
 > {
   protected readonly logger = {
-    info: debug('broker:info'),
-    error: debug('broker:error'),
-    warn: debug('broker:warn'),
-    verbose: debug('broker:verbose'),
+    info: debug('info:Projection'),
+    error: debug('error:Projection'),
+    warn: debug('warn:Projection'),
+    verbose: debug('verbose:Projection'),
+    debug: debug('debug:Projection'),
   };
 
   private readonly eventHandlers: Map<
@@ -48,6 +50,8 @@ export class Projection<
   }
 
   private async handleEvent(event: Omit<Event, 'body'> & { body: Record<string, unknown> | null }) {
+    const timestamp = new Date();
+
     this.timestampLastEventReceived = Date.now();
 
     const handler = this.eventHandlers.get(event.type);
@@ -57,12 +61,36 @@ export class Projection<
     const { handle } = handler;
     
     if (await this.store.checkProjectionCheckpoint({ projection: this.id, aggregate: event.aggregate })) {
-      await handle({ state: this._state }, event);
+      try {
+        await handle({ state: this._state }, event);
+      } catch (err) {
+        this.logger.error(`error occured while handling event: error="${err.message}" event="${
+          inspect({
+            id: event.id.toString(),
+            type: event.type,
+          }, {
+            breakLength: Infinity,
+            compact: true,
+          })
+        }"`);
+
+        throw err;
+      }
 
       await this.store.saveProjectionCheckpoint({
         projection: this.id,
         aggregate: event.aggregate,
       });
+
+      this.logger.verbose(`event handled: event="${
+        inspect({
+          id: event.id.toString(),
+          type: event.type,
+        }, {
+          breakLength: Infinity,
+          compact: true,
+        })
+      }" duration=${Date.now() - timestamp.getTime()}ms`);
     }
   }
 

@@ -23,6 +23,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     error: debug('error:MongoStoreAdapter'),
     warn: debug('warn:MongoStoreAdapter'),
     verbose: debug('verbose:MongoStoreAdapter'),
+    debug: debug('debug:MongoStoreAdapter'),
   };
 
   private readonly joser: Joser;
