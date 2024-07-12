@@ -13,6 +13,7 @@ type Options = {
   prefix: string;
   brokers: string[];
   serializers?: Serializer[];
+  maxBytes: number;
 };
 
 export type KafkaStreamAdapterOptions = Partial<Options>;
@@ -40,6 +41,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
     this.opts = {
       prefix: opts?.prefix ?? 'arque',
       brokers: opts?.brokers ?? ['localhost:9092'],
+      maxBytes: opts?.maxBytes ?? 1024 * 1024 * 10,
     };
 
     this.kafka = new Kafka({
@@ -74,6 +76,8 @@ export class KafkaStreamAdapter implements StreamAdapter {
     const consumer = this.kafka.consumer({
       groupId: topic,
       allowAutoTopicCreation: true,
+      maxBytesPerPartition: this.opts.maxBytes,
+      maxBytes: this.opts.maxBytes,
       retry: {
         maxRetryTime: 1600,
         factor: 0.5,

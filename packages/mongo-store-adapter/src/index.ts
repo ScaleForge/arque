@@ -149,7 +149,6 @@ export class MongoStoreAdapter implements StoreAdapter {
       'aggregate.version': { $gte: params.aggregate.version },
     }, {
       limit: 1,
-      readPreference: 'secondaryPreferred',
     });
 
     return count === 0;

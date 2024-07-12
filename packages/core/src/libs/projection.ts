@@ -82,7 +82,7 @@ export class Projection<
         aggregate: event.aggregate,
       });
 
-      this.logger.verbose(`event handled: event="${
+      this.logger.verbose(`event handled: duration=${Date.now() - timestamp.getTime()}ms event="${
         inspect({
           id: event.id.toString(),
           type: event.type,
@@ -90,7 +90,7 @@ export class Projection<
           breakLength: Infinity,
           compact: true,
         })
-      }" duration=${Date.now() - timestamp.getTime()}ms`);
+      }"`);
     }
   }
 
