@@ -84,11 +84,11 @@ importers:
   packages/examples:
     dependencies:
       '@arque/core':
-        specifier: 0.8.0-alpha.1
-        version: 0.8.0-alpha.1
+        specifier: 0.9.1
+        version: 0.9.1
       '@arque/mongo-store-adapter':
-        specifier: 0.8.0-alpha.3
-        version: 0.8.0-alpha.3
+        specifier: 0.8.1
+        version: 0.8.1
       '@clack/prompts':
         specifier: 0.7.0
         version: 0.7.0
@@ -111,8 +111,8 @@ importers:
   packages/kafka-stream-adapter:
     dependencies:
       '@arque/core':
-        specifier: 0.8.0-alpha.1
-        version: 0.8.0-alpha.1
+        specifier: 0.9.1
+        version: 0.9.1
       '@scaleforge/joser':
         specifier: 0.5.1
         version: 0.5.1
@@ -135,8 +135,8 @@ importers:
   packages/mongo-config-adapter:
     dependencies:
       '@arque/core':
-        specifier: 0.8.0-alpha.1
-        version: 0.8.0-alpha.1
+        specifier: 0.9.1
+        version: 0.9.1
       debug:
         specifier: 4.3.5
         version: 4.3.5
@@ -150,8 +150,8 @@ importers:
   packages/mongo-store-adapter:
     dependencies:
       '@arque/core':
-        specifier: 0.8.0-alpha.1
-        version: 0.8.0-alpha.1
+        specifier: 0.9.1
+        version: 0.9.1
       '@scaleforge/joser':
         specifier: 0.5.1
         version: 0.5.1
@@ -187,8 +187,11 @@ packages:
   '@arque/core@0.8.0-alpha.1':
     resolution: {integrity: sha512-RFhqOjCpVTDD7wF/HYtFxU/Us1DtyZcJEom5MNZdkhoFRAkVUKgkB9tViSZwJr3R4g2v+1WUPxZ4SUYioaZ8uA==}
 
-  '@arque/mongo-store-adapter@0.8.0-alpha.3':
-    resolution: {integrity: sha512-XUugR8gdr/kDrQGZd7wSN7LnGUKeJ3lZ4T3xe7Hf/xyetilydP1gFM33HVzcqIvFPzq5Rd8YbEvoDm15aIkVrw==}
+  '@arque/core@0.9.1':
+    resolution: {integrity: sha512-NYxympncBPZzBSTx8UIg7fReiMM7FD+wzElyFEOchwE6jyHbSRYrliLbj+wk2MV3T09skrUx/KgtoCJtKJ9pug==}
+
+  '@arque/mongo-store-adapter@0.8.1':
+    resolution: {integrity: sha512-aGjMKffSIGwVNnkgN8U2pNdbkfqoHxIuPe1km6vQHKjuloif71fjys7h3kjrez+lkvNjk6d7WAdT82s3ajEjNQ==}
 
   '@babel/code-frame@7.24.6':
     resolution: {integrity: sha512-ZJhac6FkEd1yhG2AHOmfcXG4ceoLltoCVJjN5XsWN9BifBQr+cHJbWi0h68HZuSORq+3WtJ2z0hwF2NG1b5kcA==}
@@ -857,6 +860,7 @@ packages:
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -864,6 +868,7 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/retry@0.3.0':
     resolution: {integrity: sha512-d2CGZR2o7fS6sWB7DG/3a95bGKQyHMACZ5aW8qGkkqQpUoZV6C0X7Pc7l4ZNMZkfNBf4VWNe9E1jRsf0G146Ew==}
@@ -2311,6 +2316,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@9.3.5:
     resolution: {integrity: sha512-e1LleDykUz2Iu+MTYdkSsuWX8lvAjAcs0Xef0lNIu0S2wOAzuTxCJtcd9S3cijlwYF18EsU3rzb8jPVobxDh9Q==}
@@ -3595,6 +3601,7 @@ packages:
 
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@4.4.1:
@@ -4203,11 +4210,21 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@arque/mongo-store-adapter@0.8.0-alpha.3':
+  '@arque/core@0.9.1':
+    dependencies:
+      async-mutex: 0.5.0
+      bs58: 5.0.0
+      debug: 4.3.5
+      exponential-backoff: 3.1.1
+      lru-cache: 10.2.2
+    transitivePeerDependencies:
+      - supports-color
+
+  '@arque/mongo-store-adapter@0.8.1':
     dependencies:
       '@arque/core': 0.8.0-alpha.1
       '@scaleforge/joser': 0.5.1
-      debug: 4.3.4
+      debug: 4.3.5
       decimal.js: 10.4.3
       exponential-backoff: 3.1.1
       mongoose: 8.4.1(socks@2.7.1)
