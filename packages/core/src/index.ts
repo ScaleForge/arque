@@ -1,4 +1,4 @@
-/** build=2x */
+/** build=3x */
 export * from './libs/event-id';
 export * from './libs/types';
 export * from './libs/adapters';
