@@ -56,7 +56,11 @@ export class Projection<
 
     const handler = this.eventHandlers.get(event.type);
 
-    assert(handler, `handler does not exist: event=${event.type}`);
+    if (!handler) {
+      this.logger.warn(`handler does not exist: type=${event.type}`);
+
+      return;
+    }
 
     const { handle } = handler;
     
