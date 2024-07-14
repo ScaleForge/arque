@@ -81,33 +81,6 @@ importers:
         specifier: 10.2.2
         version: 10.2.2
 
-  packages/examples:
-    dependencies:
-      '@arque/core':
-        specifier: 0.9.1
-        version: 0.9.1
-      '@arque/mongo-store-adapter':
-        specifier: 0.9.1
-        version: 0.9.1
-      '@clack/prompts':
-        specifier: 0.7.0
-        version: 0.7.0
-      decimal.js:
-        specifier: 10.4.3
-        version: 10.4.3
-      get-port-please:
-        specifier: 3.1.2
-        version: 3.1.2
-      mongodb-memory-server:
-        specifier: 9.2.0
-        version: 9.2.0
-      ora:
-        specifier: 5.4.1
-        version: 5.4.1
-      ramda:
-        specifier: 0.30.0
-        version: 0.30.0
-
   packages/kafka-stream-adapter:
     dependencies:
       '@arque/core':
@@ -186,9 +159,6 @@ packages:
 
   '@arque/core@0.9.1':
     resolution: {integrity: sha512-NYxympncBPZzBSTx8UIg7fReiMM7FD+wzElyFEOchwE6jyHbSRYrliLbj+wk2MV3T09skrUx/KgtoCJtKJ9pug==}
-
-  '@arque/mongo-store-adapter@0.9.1':
-    resolution: {integrity: sha512-qpvSjZrYIYQdRLyWIhbWpLlIQOyfaR+mr9j4xkNz1xPa/n3nqkHa0AFgRwxCckxFUZLGiLDjvryE8whOP4IjjA==}
 
   '@babel/code-frame@7.24.6':
     resolution: {integrity: sha512-ZJhac6FkEd1yhG2AHOmfcXG4ceoLltoCVJjN5XsWN9BifBQr+cHJbWi0h68HZuSORq+3WtJ2z0hwF2NG1b5kcA==}
@@ -815,14 +785,6 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
-
-  '@clack/core@0.3.4':
-    resolution: {integrity: sha512-H4hxZDXgHtWTwV3RAVenqcC4VbJZNegbBjlPvzOzCouXtS2y3sDvlO3IsbrPNWuLWPPlYVYPghQdSF64683Ldw==}
-
-  '@clack/prompts@0.7.0':
-    resolution: {integrity: sha512-0MhX9/B4iL6Re04jPrttDm+BsP8y6mS7byuv0BvXgdXhbV5PdlsHt55dvNsuBCPZ7xq1oTAOOuotR9NFbQyMSA==}
-    bundledDependencies:
-      - is-unicode-supported
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -2254,9 +2216,6 @@ packages:
     resolution: {integrity: sha512-2+QbHjFRfGB74v/pYWjd5OhU3TDIC2Gv/YKUTk/tCvAz0pkn/Mz6P3uByuBimLOcPvN2jYdScl3xGFSrx0jEcA==}
     engines: {node: '>=6.9.0'}
     hasBin: true
-
-  get-port-please@3.1.2:
-    resolution: {integrity: sha512-Gxc29eLs1fbn6LQ4jSU4vXjlwyZhF5HsGuMAa7gqBP4Rw4yxxltyDUuF5MBclFzDTXO+ACchGQoeela4DSfzdQ==}
 
   get-port@5.1.1:
     resolution: {integrity: sha512-g/Q1aTSDOxFpchXC4i8ZWvxA1lnPqx/JHqcpIw0/LX9T8x/GBbi6YnlN5nhaKIFkT8oFsscUKgDJYxfwfS6QsQ==}
@@ -4198,26 +4157,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@arque/mongo-store-adapter@0.9.1':
-    dependencies:
-      '@arque/core': 0.9.1
-      '@scaleforge/joser': 0.5.1
-      debug: 4.3.5
-      decimal.js: 10.4.3
-      exponential-backoff: 3.1.1
-      mongoose: 8.4.1(socks@2.7.1)
-      p-queue: 6.6.2
-      ramda: 0.30.0
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - '@mongodb-js/zstd'
-      - gcp-metadata
-      - kerberos
-      - mongodb-client-encryption
-      - snappy
-      - socks
-      - supports-color
-
   '@babel/code-frame@7.24.6':
     dependencies:
       '@babel/highlight': 7.24.6
@@ -4983,17 +4922,6 @@ snapshots:
       to-fast-properties: 2.0.0
 
   '@bcoe/v8-coverage@0.2.3': {}
-
-  '@clack/core@0.3.4':
-    dependencies:
-      picocolors: 1.0.0
-      sisteransi: 1.0.5
-
-  '@clack/prompts@0.7.0':
-    dependencies:
-      '@clack/core': 0.3.4
-      picocolors: 1.0.0
-      sisteransi: 1.0.5
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -6851,8 +6779,6 @@ snapshots:
       hosted-git-info: 4.1.0
       through2: 2.0.5
       yargs: 16.2.0
-
-  get-port-please@3.1.2: {}
 
   get-port@5.1.1: {}
 
