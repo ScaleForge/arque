@@ -21,7 +21,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "0.9.1",
+    "@arque/core": "^0.9.1",
     "@scaleforge/joser": "0.5.1",
     "debug": "4.3.5",
     "decimal.js": "10.4.3",
