@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@arque/core": "0.9.1",
-    "@arque/mongo-store-adapter": "0.8.1",
+    "@arque/mongo-store-adapter": "0.9.1",
     "@clack/prompts": "0.7.0",
     "decimal.js": "10.4.3",
     "get-port-please": "3.1.2",

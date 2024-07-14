@@ -87,8 +87,8 @@ importers:
         specifier: 0.9.1
         version: 0.9.1
       '@arque/mongo-store-adapter':
-        specifier: 0.8.1
-        version: 0.8.1
+        specifier: 0.9.1
+        version: 0.9.1
       '@clack/prompts':
         specifier: 0.7.0
         version: 0.7.0
@@ -184,14 +184,11 @@ packages:
     resolution: {integrity: sha512-lFMjJTrFL3j7L9yBxwYfCq2k6qqwHyzuUl/XBnif78PWTJYyL/dfowQHWE3sp6U6ZzqWiiIZnpTMO96zhkjwtg==}
     engines: {node: '>=6.0.0'}
 
-  '@arque/core@0.8.0-alpha.1':
-    resolution: {integrity: sha512-RFhqOjCpVTDD7wF/HYtFxU/Us1DtyZcJEom5MNZdkhoFRAkVUKgkB9tViSZwJr3R4g2v+1WUPxZ4SUYioaZ8uA==}
-
   '@arque/core@0.9.1':
     resolution: {integrity: sha512-NYxympncBPZzBSTx8UIg7fReiMM7FD+wzElyFEOchwE6jyHbSRYrliLbj+wk2MV3T09skrUx/KgtoCJtKJ9pug==}
 
-  '@arque/mongo-store-adapter@0.8.1':
-    resolution: {integrity: sha512-aGjMKffSIGwVNnkgN8U2pNdbkfqoHxIuPe1km6vQHKjuloif71fjys7h3kjrez+lkvNjk6d7WAdT82s3ajEjNQ==}
+  '@arque/mongo-store-adapter@0.9.1':
+    resolution: {integrity: sha512-qpvSjZrYIYQdRLyWIhbWpLlIQOyfaR+mr9j4xkNz1xPa/n3nqkHa0AFgRwxCckxFUZLGiLDjvryE8whOP4IjjA==}
 
   '@babel/code-frame@7.24.6':
     resolution: {integrity: sha512-ZJhac6FkEd1yhG2AHOmfcXG4ceoLltoCVJjN5XsWN9BifBQr+cHJbWi0h68HZuSORq+3WtJ2z0hwF2NG1b5kcA==}
@@ -1900,15 +1897,6 @@ packages:
 
   dateformat@3.0.3:
     resolution: {integrity: sha512-jyCETtSl3VMZMWeRo7iY1FL19ges1t55hMo5yaam4Jrsm5EPL89UQkoQRyiI+Yf4k8r2ZpdngkV8hr1lIdjb3Q==}
-
-  debug@4.3.4:
-    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
 
   debug@4.3.5:
     resolution: {integrity: sha512-pt0bNEmneDIvdL1Xsd9oDQ/wrQRkXDT4AUWlNZNPKvW5x/jyO9VFXkJUP07vQ2upmw5PlaITaPKc31jK13V+jg==}
@@ -4200,16 +4188,6 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
 
-  '@arque/core@0.8.0-alpha.1':
-    dependencies:
-      async-mutex: 0.5.0
-      bs58: 5.0.0
-      debug: 4.3.4
-      exponential-backoff: 3.1.1
-      lru-cache: 10.2.2
-    transitivePeerDependencies:
-      - supports-color
-
   '@arque/core@0.9.1':
     dependencies:
       async-mutex: 0.5.0
@@ -4220,9 +4198,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@arque/mongo-store-adapter@0.8.1':
+  '@arque/mongo-store-adapter@0.9.1':
     dependencies:
-      '@arque/core': 0.8.0-alpha.1
+      '@arque/core': 0.9.1
       '@scaleforge/joser': 0.5.1
       debug: 4.3.5
       decimal.js: 10.4.3
@@ -6532,10 +6510,6 @@ snapshots:
   dargs@7.0.0: {}
 
   dateformat@3.0.3: {}
-
-  debug@4.3.4:
-    dependencies:
-      ms: 2.1.2
 
   debug@4.3.5:
     dependencies:
