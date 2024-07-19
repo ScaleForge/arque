@@ -278,7 +278,7 @@ export class Aggregate<
         maxDelay: 400,
         numOfAttempts: opts?.maxRetries ?? 10,
         startingDelay: 10,
-        timeMultiple: 1.5,
+        timeMultiple: 2,
         retry: (err) => {
           if (err instanceof AggregateVersionConflictError) {
             this.logger.warn(`retrying: error="${err.message}"`);

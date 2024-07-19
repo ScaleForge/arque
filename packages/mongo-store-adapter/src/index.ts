@@ -89,10 +89,6 @@ export class MongoStoreAdapter implements StoreAdapter {
     if (!this._connection) {
       this._connection = (async () => {
         const connection = await mongoose.createConnection(this.opts.uri, {
-          writeConcern: {
-            w: 1,
-          },
-          readPreference: 'secondaryPreferred',
           maxPoolSize: this.opts.maxPoolSize,
           minPoolSize: this.opts.minPoolSize,
           socketTimeoutMS: this.opts?.socketTimeoutMS,
@@ -149,6 +145,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       'aggregate.version': { $gte: params.aggregate.version },
     }, {
       limit: 1,
+      readPreference: 'primaryPreferred',
     });
 
     return count === 0;
@@ -311,7 +308,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     }
 
     const cursor = EventModel.find(query, null, {
-      readPreference: 'secondaryPreferred',
+      readPreference: 'primaryPreferred',
     }).sort({ _id: 1 }).cursor({
       batchSize: 256,
     });
@@ -370,7 +367,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gt: params.aggregate.version },
     }, null, {
-      readPreference: 'secondaryPreferred',
+      readPreference: 'secondary',
     }).sort({
       'aggregate.version': -1,
     });
