@@ -147,30 +147,24 @@ export class Aggregate<
   }
 
   private async _reload() {
-    let hrtime: [number, number];
-
-    hrtime = process.hrtime();
     const snapshot = await this.store.findLatestSnapshot<TState>({
       aggregate: {
         id: this.id,
         version: this.version,
       },
     });
-    this.logger.debug(`findLatestSnapshot: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     if (snapshot) {
       this._state = this.opts.deserializeState(snapshot.state);
       this._version = snapshot.aggregate.version;
     }
 
-    hrtime = process.hrtime();
     const events = await this.store.listEvents({
       aggregate: {
         id: this.id,
         version: this.version,
       },
     });
-    this.logger.debug(`listEvents: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     await this.digest(events);
   }
@@ -193,11 +187,7 @@ export class Aggregate<
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
   }, ctx?: Buffer) {
-    let hrtime: [number, number];
-
-    hrtime = process.hrtime();
     await this.store.saveEvents(params);
-    this.logger.debug(`saveEvents: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     const events = params.events.map((item, index) => ({
       ...item,
@@ -212,14 +202,12 @@ export class Aggregate<
       },
     }));
 
-    hrtime = process.hrtime();
     await this.stream.sendEvents([
       {
         stream: 'main',
         events,
       },
     ]);
-    this.logger.debug(`sendEvents: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     await this.digest(events);
 
@@ -239,13 +227,9 @@ export class Aggregate<
     noReload?: true,
     maxRetries?: number,
   }): Promise<void> {
-    let hrtime: [number, number];
-
     const handler = this.commandHandler(command.type);
 
-    hrtime = process.hrtime();
     const release = await this.mutex.acquire();
-    this.logger.debug(`mutex: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
 
     let first = true;
 
@@ -275,7 +259,6 @@ export class Aggregate<
           ...command.args,
         );
 
-        hrtime = process.hrtime();
         await this.dispatch({
           aggregate: {
             id: this.id,
@@ -289,14 +272,13 @@ export class Aggregate<
           })),
           timestamp,
         }, ctx);
-        this.logger.debug(`dispatch: elapsed=${Math.floor(process.hrtime(hrtime)[1] / 1e6)}ms`);
       }, {
         delayFirstAttempt: false,
         jitter: 'full',
-        maxDelay: 800,
-        numOfAttempts: opts?.maxRetries ?? 5,
-        startingDelay: 100,
-        timeMultiple: 2,
+        maxDelay: 400,
+        numOfAttempts: opts?.maxRetries ?? 10,
+        startingDelay: 10,
+        timeMultiple: 1.5,
         retry: (err) => {
           if (err instanceof AggregateVersionConflictError) {
             this.logger.warn(`retrying: error="${err.message}"`);
