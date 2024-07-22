@@ -29,10 +29,12 @@ export class MongoConfigAdapter implements ConfigAdapter {
   private _init: Promise<void>;
 
   constructor(opts?: Partial<Options>) {
+    const maxPoolSize = opts?.maxPoolSize ?? 100;
+
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
-      maxPoolSize: opts?.maxPoolSize ?? 100,
-      minPoolSize: opts?.minPoolSize ?? 10,
+      maxPoolSize,
+      minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
       cacheMax: opts?.cacheMax ?? 1000,
