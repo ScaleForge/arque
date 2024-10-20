@@ -185,13 +185,13 @@ export class Aggregate<
       version: number;
     };
     timestamp: Date;
-    events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
+    events: Pick<Event, 'id' | 'type' | 'body' | 'meta' | 'timestamp'>[];
   }, ctx?: Buffer) {
     await this.store.saveEvents(params);
 
     const events = params.events.map((item, index) => ({
       ...item,
-      timestamp: params.timestamp,
+      timestamp: item.timestamp,
       aggregate: {
         id: this.id,
         version: this.version + index + 1,
@@ -269,6 +269,7 @@ export class Aggregate<
             type: item.type,
             body: item.body,
             meta: item.meta ?? {},
+            timestamp: item.timestamp ?? timestamp,
           })),
           timestamp,
         }, ctx);

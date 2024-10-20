@@ -52,7 +52,7 @@ export type Command<
 export type GeneratedEvent<TEvent extends Event> = Pick<
   TEvent,
   'type' | 'body'
-> & Partial<Pick<TEvent, 'meta'>>;
+> & Partial<Pick<TEvent, 'meta' | 'timestamp'>>;
 
 type ExtractCommandType<T> = T extends Command<infer TType, unknown[]> ? TType : never;
 

@@ -13,7 +13,9 @@ type Options = {
   prefix: string;
   brokers: string[];
   serializers?: Serializer[];
+  minBytes: number;
   maxBytes: number;
+  maxBytesPerPartition: number;
 };
 
 export type KafkaStreamAdapterOptions = Partial<Options>;
@@ -41,7 +43,9 @@ export class KafkaStreamAdapter implements StreamAdapter {
     this.opts = {
       prefix: opts?.prefix ?? 'arque',
       brokers: opts?.brokers ?? ['localhost:9092'],
+      minBytes: opts?.minBytes ?? 1,
       maxBytes: opts?.maxBytes ?? 1024 * 1024 * 10,
+      maxBytesPerPartition: opts?.maxBytesPerPartition ?? 1024 * 1024 * 2,
     };
 
     this.kafka = new Kafka({
@@ -76,8 +80,10 @@ export class KafkaStreamAdapter implements StreamAdapter {
     const consumer = this.kafka.consumer({
       groupId: topic,
       allowAutoTopicCreation: true,
+      minBytes: this.opts.minBytes,
       maxBytesPerPartition: this.opts.maxBytes,
       maxBytes: this.opts.maxBytes,
+      maxWaitTimeInMs: 2000,
       retry: {
         maxRetryTime: 1600,
         factor: 0.5,
@@ -172,7 +178,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
             multiplier: 2,
           },
           createPartitioner: () => ({ partitionMetadata, message }) =>
-            murmurHash(message.headers.__ctx as Buffer) % partitionMetadata.length,
+            murmurHash(new Uint8Array(<Buffer>message.headers.__ctx)) % partitionMetadata.length,
         });
     
         await producer.connect();
