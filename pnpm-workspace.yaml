@@ -1,5 +1,0 @@
-packages:
-  - packages/core
-  - packages/kafka-stream-adapter
-  - packages/mongo-config-adapter
-  - packages/mongo-store-adapter
