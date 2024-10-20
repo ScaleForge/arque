@@ -1,6 +1,6 @@
 {
   "name": "@arque/core",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "description": "`arque` core library",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
@@ -19,7 +19,7 @@
   "scripts": {
     "test": "jest",
     "build": "rimraf dist && tsc --project tsconfig.build.json",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {
     "async-mutex": "0.5.0",

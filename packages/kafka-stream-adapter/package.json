@@ -18,7 +18,7 @@
   "scripts": {
     "test": "jest",
     "build": "rimraf dist && tsc --project tsconfig.build.json",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {
     "@arque/core": "0.10.4",
