@@ -26,6 +26,12 @@
     "tslib": "2.8.0",
     "typescript": "5.6.3"
   },
+  "workspaces": [
+    "packages/core",
+    "packages/kafka-stream-adapter",
+    "packages/mongo-config-adapter",
+    "packages/mongo-store-adapter"
+  ],
   "keywords": [
     "event-sourcing",
     "cqrs",
