@@ -20,7 +20,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "0.10.4",
+    "@arque/core": "0.10.6",
     "debug": "4.3.5",
     "lru-cache": "10.2.2",
     "mongoose": "8.4.1"

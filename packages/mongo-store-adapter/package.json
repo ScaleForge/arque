@@ -21,7 +21,7 @@
     "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {
-    "@arque/core": "0.10.4",
+    "@arque/core": "0.10.6",
     "@scaleforge/joser": "0.5.1",
     "debug": "4.3.5",
     "decimal.js": "10.4.3",
