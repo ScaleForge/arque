@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Mutex } from 'async-mutex';
-import { backOff } from 'exponential-backoff';
 import assert from 'assert';
 import { debug } from 'debug';
-import { Event, EventHandler, CommandHandler, Command } from './types';
+import { Mutex } from 'async-mutex';
+import { backOff } from 'exponential-backoff';
 import { EventId } from './event-id';
-import { AggregateVersionConflictError, StoreAdapter } from './adapters/store-adapter';
 import { StreamAdapter } from './adapters/stream-adapter';
+import { Event, EventHandler, CommandHandler, Command } from './types';
+import { AggregateVersionConflictError, StoreAdapter } from './adapters/store-adapter';
 
 type ExtractCommand<T> = T extends CommandHandler<infer Command, any, any> ? Command : never;
 
