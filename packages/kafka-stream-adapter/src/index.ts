@@ -168,8 +168,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
     if (!this._producer) {
       this._producer = (async () => {
         const producer = this.kafka.producer({
-          allowAutoTopicCreation: true,
-          idempotent: false,
+          idempotent: true,
           retry: {
             maxRetryTime: 800,
             factor: 0.5,
@@ -177,8 +176,8 @@ export class KafkaStreamAdapter implements StreamAdapter {
             retries: 5,
             multiplier: 2,
           },
-          createPartitioner: () => ({ partitionMetadata, message }) =>
-            murmurHash(new Uint8Array(<Buffer>message.headers.__ctx)) % partitionMetadata.length,
+          createPartitioner: () => ({ partitionMetadata, message: { headers: { __ctx } } }) => 
+            murmurHash(new Uint8Array(<Buffer>__ctx)) % partitionMetadata.length
         });
     
         await producer.connect();
