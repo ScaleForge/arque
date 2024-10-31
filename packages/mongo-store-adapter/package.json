@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@arque/core": "^0.10.8",
-    "@scaleforge/joser": "0.5.1",
+    "@scaleforge/joser": "0.6.3",
     "debug": "4.3.5",
     "decimal.js": "10.4.3",
     "exponential-backoff": "3.1.1",
