@@ -37,7 +37,7 @@ export class MongoConfigAdapter implements ConfigAdapter {
       minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
-      cacheMax: opts?.cacheMax ?? 1000,
+      cacheMax: opts?.cacheMax ?? 2500,
       cacheTTL: opts?.cacheTTL ?? 1000 * 60 * 60,
     };
 

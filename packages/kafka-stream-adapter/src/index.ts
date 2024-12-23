@@ -200,6 +200,8 @@ export class KafkaStreamAdapter implements StreamAdapter {
     }[],
     opts?: { raw?: true },
   ): Promise<void> {
+    const timestamp = new Date();
+
     const producer = await this.producer();
 
     await producer.sendBatch({
@@ -217,6 +219,11 @@ export class KafkaStreamAdapter implements StreamAdapter {
         };
       }),
     });
+
+    this.logger.verbose(`events sent: duration=${Date.now() - timestamp.getTime()} events="${inspect(params, {
+      breakLength: Infinity,
+      compact: true,
+    })}"`);
   }
 
   async close(): Promise<void> {
