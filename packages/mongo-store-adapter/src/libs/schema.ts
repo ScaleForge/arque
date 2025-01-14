@@ -14,8 +14,7 @@ const Event = new Schema({
   id: false,
   autoIndex: true,
 });
-Event.index({ 'aggregate.id': 1, 'aggregate.version': -1 }, { unique: true, background: false });
-Event.index({ 'type': 1, '_id': -1 }, { background: false });
+Event.index({ 'aggregate.id': 1, 'aggregate.version': 1 }, { unique: true, background: false });
 
 const Aggregate = new Schema({
   _id: Buffer,
@@ -38,7 +37,7 @@ const Snapshot = new Schema({
   id: false,
   autoIndex: true,
 });
-Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': -1 }, { unique: true, background: false });
+Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': 1 }, { unique: true, background: false });
 
 const ProjectionCheckpoint = new Schema({
   projection: String,
@@ -52,6 +51,6 @@ const ProjectionCheckpoint = new Schema({
   autoIndex: true,
 });
 ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1 }, { unique: true, background: false });
-ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1, 'aggregate.version': -1 });
+ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1, 'aggregate.version': 1 });
 
 export { Event, Aggregate, Snapshot, ProjectionCheckpoint };

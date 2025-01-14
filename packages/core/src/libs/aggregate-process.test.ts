@@ -155,7 +155,7 @@ describe('Aggregate#process', () => {
   test.concurrent('multiple commands in succession', async () => {
     const id = randomBytes(13);
 
-    const values = R.times(() => faker.number.float({ min: 10, max: 100, precision: 2 }), 10);
+    const values = R.times(() => faker.number.float({ min: 10, max: 100, fractionDigits: 2 }), 10);
 
     const store = {
       listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator([])),

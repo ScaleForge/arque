@@ -38,11 +38,6 @@ export interface StoreAdapter {
     };
   }): Promise<AsyncIterableIterator<TEvent>>;
 
-  listEvents<TEvent = Event>(params: {
-    id?: EventId;
-    type?: number | Array<number>
-  }): Promise<AsyncIterableIterator<TEvent>>;
-
   saveSnapshot(params: Snapshot): Promise<void>;
 
   findLatestSnapshot<TState = unknown>(params: {
