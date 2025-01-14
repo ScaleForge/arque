@@ -275,15 +275,47 @@ export class MongoStoreAdapter implements StoreAdapter {
       id: Buffer;
       version?: number;
     };
+  }): Promise<AsyncIterableIterator<TEvent>>;
+
+  async listEvents<TEvent = Event>(params: {
+    type: number;
+  }): Promise<AsyncIterableIterator<TEvent>> 
+
+  async listEvents<TEvent = Event>(params: {
+    aggregate?: {
+      id: Buffer;
+      version?: number;
+    };
+    type?: number;
   }): Promise<AsyncIterableIterator<TEvent>> {
     const EventModel = await this.model('Event');
 
-    const query = {
-      'aggregate.id': params.aggregate.id,
-      'aggregate.version': {
-        $gt: params.aggregate.version
-      }
-    };
+    let query = {};
+
+    let sort = {};
+
+    if (params.aggregate) {
+      query = {
+        'aggregate.id': params.aggregate.id,
+        'aggregate.version': { $gt: params.aggregate.version ?? 0 },
+      };
+
+      sort = {
+        'aggregate.id': 1,
+        'aggregate.version': 1,
+      };
+    }
+    
+    if (typeof params.type === 'number') {
+      query = {
+        'type': params.type,
+      };
+
+      sort = {
+        'type': 1,
+        'timestamp': 1,
+      };
+    }
 
     const cursor = EventModel.find(query, null, {
       readPreference: 'primaryPreferred',

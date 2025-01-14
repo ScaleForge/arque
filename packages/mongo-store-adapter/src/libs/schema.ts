@@ -15,6 +15,7 @@ const Event = new Schema({
   autoIndex: true,
 });
 Event.index({ 'aggregate.id': 1, 'aggregate.version': 1 }, { unique: true, background: false });
+Event.index({ 'type': 1, 'timestamp': 1 });
 
 const Aggregate = new Schema({
   _id: Buffer,
