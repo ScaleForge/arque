@@ -6,6 +6,7 @@ import { Joser, Serializer } from '@scaleforge/joser';
 import debug from 'debug';
 import assert from 'assert';
 import Queue from 'p-queue';
+import { match, P } from 'ts-pattern';
 
 type Options = {
   readonly uri: string;
@@ -69,6 +70,18 @@ export class MongoStoreAdapter implements StoreAdapter {
         ...(this.opts.serializers),
       ],
     });
+  }
+
+  private serialize(value) {
+    return match(value)
+      .with(P.union(P.nullish, P.number, P.string, P.boolean, P.instanceOf(Buffer)), (value) => value)
+      .otherwise((value) => this.joser.serialize(value));
+  }
+
+  private deserialize(value) {
+    return match(value)
+      .with(P.union(P.nullish, P.number, P.string, P.boolean, P.instanceOf(Buffer)), (value) => value)
+      .otherwise((value) => this.joser.deserialize(value));
   }
 
   public async init() {
@@ -164,8 +177,6 @@ export class MongoStoreAdapter implements StoreAdapter {
       this.model('Aggregate'),
     ]);
 
-    const { logger } = this;
-
     await backOff(async () => {
       const session = await EventModel.startSession();
 
@@ -225,8 +236,8 @@ export class MongoStoreAdapter implements StoreAdapter {
             id: params.aggregate.id,
             version: params.aggregate.version + index,
           },
-          body: this.joser.serialize(event.body),
-          meta: this.joser.serialize({
+          body: this.serialize(event.body),
+          meta: this.serialize({
             ...event.meta,
             ...params.meta,
           }),
@@ -249,7 +260,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       maxDelay: this.opts.retryMaxDelay,
       numOfAttempts: this.opts.retryMaxAttempts,
       jitter: 'full',
-      retry(err) {
+      retry: (err) => {
         const retry = [
           'SnapshotUnavailable',
           'NotWritablePrimary',
@@ -260,9 +271,9 @@ export class MongoStoreAdapter implements StoreAdapter {
         ].includes(err.codeName);
         
         if (retry) {
-          logger.warn('retry #saveEvents: code=%s', err.codeName);
+          this.logger.warn('retry #saveEvents: code=%s', err.codeName);
         } else {
-          logger.error('error #saveEvents: message=%s', err.message);
+          this.logger.error('error #saveEvents: message=%s', err.message);
         }
 
         return retry;
@@ -288,6 +299,8 @@ export class MongoStoreAdapter implements StoreAdapter {
     };
     type?: number;
   }): Promise<AsyncIterableIterator<TEvent>> {
+    const _this = this;
+    
     const EventModel = await this.model('Event');
 
     let query = {};
@@ -322,8 +335,6 @@ export class MongoStoreAdapter implements StoreAdapter {
     }).sort({ 'aggregate.id': 1, 'aggregate.version': 1 }).cursor({
       batchSize: 256,
     });
-
-    const { joser } = this;
     
     return {
       async next() {
@@ -341,8 +352,8 @@ export class MongoStoreAdapter implements StoreAdapter {
               id: Buffer.from(doc['aggregate']['id']),
               version: doc['aggregate']['version'],
             },
-            body: joser.deserialize(doc['body'] ?? {}),
-            meta: joser.deserialize(doc['meta'] ?? {}),
+            body: _this.deserialize(doc['body'] ?? {}),
+            meta: _this.deserialize(doc['meta'] ?? {}),
             timestamp: doc['timestamp'],
           },
           done: false,
@@ -359,7 +370,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
     await SnapshotModel.create([{
       ...params,
-      state: this.joser.serialize(<never>params.state),
+      state: this.serialize(<never>params.state),
     }], {
       validateBeforeSave: false,
       w: 1
@@ -391,7 +402,7 @@ export class MongoStoreAdapter implements StoreAdapter {
         id: Buffer.from(snapshot['aggregate']['id']),
         version: snapshot['aggregate']['version'],
       },
-      state: this.joser.deserialize(snapshot['state']) as T,
+      state: this.deserialize(snapshot['state']) as T,
       timestamp: snapshot['timestamp'],
     };
   }
