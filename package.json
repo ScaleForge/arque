@@ -39,5 +39,6 @@
     "distributed",
     "event",
     "event-driven"
-  ]
+  ],
+  "version": "0.0.1"
 }
