@@ -219,6 +219,8 @@ export class Aggregate<
         },
         state: this.opts.serializeState(this.state),
         timestamp: params.timestamp,
+      }).catch((err) => {
+        this.logger.error(`error occured while saving snapshot: error="${err.message}"`);
       });
     }
   }
