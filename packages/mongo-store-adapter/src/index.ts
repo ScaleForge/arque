@@ -1,3 +1,4 @@
+/** build x1 */
 import { Event, StoreAdapter, Snapshot, AggregateVersionConflictError, EventId } from '@arque/core';
 import mongoose, { Connection, ConnectOptions } from 'mongoose';
 import * as schema from './libs/schema';
