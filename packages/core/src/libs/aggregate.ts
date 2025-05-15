@@ -101,14 +101,6 @@ export class Aggregate<
     return handler;
   }
 
-  private eventHandler(type: number) {
-    const handler = this.eventHandlers.get(type);
-
-    assert(handler, `event handler does not exist: type=${type}`);
-
-    return handler;
-  }
-
   private shoudTakeSnapshot() {
     const { shouldTakeSnapshot, snapshotInterval } = this.opts;
 
@@ -129,7 +121,9 @@ export class Aggregate<
     events: AsyncIterable<Event> | Array<Event>,
   ) {
     for await (const event of events) {
-      const state = await this.eventHandler(event.type).handle(
+      const handler = this.eventHandlers.get(event.type);
+
+      const state = handler ? await handler.handle(
         {
           aggregate: {
             id: this.id,
@@ -138,7 +132,7 @@ export class Aggregate<
           state: this.state,
         },
         event,
-      );
+      ) : this.state;
 
       this._state = state as TState;
       this._version = event.aggregate.version;
