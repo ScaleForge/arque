@@ -9,11 +9,11 @@ export class Projection<
   TEventHandler extends ProjectionEventHandler<Event, TState> = ProjectionEventHandler<Event, TState>,
 > {
   protected readonly logger = {
-    info: debug('info:Projection'),
-    error: debug('error:Projection'),
-    warn: debug('warn:Projection'),
-    verbose: debug('verbose:Projection'),
-    debug: debug('debug:Projection'),
+    info: debug('info:arque:Projection'),
+    error: debug('error:arque:Projection'),
+    warn: debug('warn:arque:Projection'),
+    verbose: debug('verbose:arque:Projection'),
+    debug: debug('debug:arque:Projection'),
   };
 
   private readonly eventHandlers: Map<
@@ -68,7 +68,7 @@ export class Projection<
       try {
         await handle({ state: this._state }, event);
       } catch (err) {
-        this.logger.error(`error occured while handling event: error="${err.message}" event="${
+        this.logger.warn(`error occured while handling event: error="${err.message}" event="${
           inspect({
             id: event.id.toString(),
             type: event.type,

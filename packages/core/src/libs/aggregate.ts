@@ -29,11 +29,11 @@ export class Aggregate<
   TEventHandler extends EventHandler<Event, TState> = EventHandler<Event, TState>,
 > {
   private readonly logger = {
-    info: debug('info:Aggregate'),
-    error: debug('error:Aggregate'),
-    warn: debug('warn:Aggregate'),
-    verbose: debug('verbose:Aggregate'),
-    debug: debug('debug:Aggregate'),
+    info: debug('info:arque:Aggregate'),
+    error: debug('error:arque:Aggregate'),
+    warn: debug('warn:arque:Aggregate'),
+    verbose: debug('verbose:arque:Aggregate'),
+    debug: debug('debug:arque:Aggregate'),
   };
 
   private mutex: Mutex;
@@ -214,7 +214,7 @@ export class Aggregate<
         state: this.opts.serializeState(this.state),
         timestamp: params.timestamp,
       }).catch((err) => {
-        this.logger.error(`error occured while saving snapshot: error="${err.message}"`);
+        this.logger.warn(`error occured while saving snapshot: error="${err.message}"`);
       });
     }
   }
