@@ -1,6 +1,6 @@
 {
   "name": "@arque/mongo-config-adapter",
-  "version": "0.10.17",
+  "version": "0.10.18",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "0.10.16",
+    "@arque/core": "^0.10.17",
     "debug": "4.4.1",
     "lru-cache": "10.2.2",
     "mongoose": "8.15.1"
