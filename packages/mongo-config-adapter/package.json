@@ -20,10 +20,10 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@arque/core": "^0.10.16",
-    "debug": "4.3.5",
+    "@arque/core": "0.10.16",
+    "debug": "4.4.1",
     "lru-cache": "10.2.2",
-    "mongoose": "8.9.5"
+    "mongoose": "8.15.1"
   },
   "publishConfig": {
     "access": "public"

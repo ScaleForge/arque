@@ -21,15 +21,15 @@
     "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {
-    "@arque/core": "^0.10.16",
-    "@scaleforge/joser": "0.8.0",
-    "debug": "4.3.5",
-    "decimal.js": "10.4.3",
-    "exponential-backoff": "3.1.1",
-    "mongoose": "8.9.5",
+    "@arque/core": "0.10.16",
+    "@scaleforge/joser": "0.8.3",
+    "debug": "4.4.1",
+    "decimal.js": "10.5.0",
+    "exponential-backoff": "3.1.2",
+    "mongoose": "8.15.1",
     "p-queue": "6.6.2",
-    "ramda": "0.30.0",
-    "ts-pattern": "5.6.2"
+    "ramda": "0.30.1",
+    "ts-pattern": "5.7.1"
   },
   "publishConfig": {
     "access": "public"
