@@ -47,12 +47,12 @@ export class EventId {
     return this._buffer.equals(other._buffer);
   }
 
-  public static from(value: Buffer | string) {
+  public static from(value: string | Buffer) {
     if (value instanceof Buffer) {
       return new EventId(value);
     }
 
-    return new EventId(Buffer.from(bs58.decode(value)));
+    return new EventId(Buffer.from(bs58.decode(<string>value)));
   }
 
   public static generate() {

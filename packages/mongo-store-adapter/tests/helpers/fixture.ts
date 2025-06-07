@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 export async function setupFixture() {
   const mongo = await MongoMemoryReplSet.create({
     replSet: {
-      storageEngine: 'ephemeralForTest',
+      storageEngine: 'wiredTiger',
       count: 3,
     },
     instanceOpts: [

@@ -7,24 +7,24 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@faker-js/faker": "9.3.0",
-    "@nx/jest": "20.3.1",
-    "@types/jest": "29.5.12",
-    "@types/node": "22.7.7",
-    "@types/ramda": "0.30.0",
-    "@typescript-eslint/eslint-plugin": "8.10.0",
-    "@typescript-eslint/parser": "8.10.0",
-    "eslint": "9.18.0",
+    "@faker-js/faker": "9.8.0",
+    "@nx/jest": "20.8.2",
+    "@types/jest": "29.5.14",
+    "@types/node": "22.15.30",
+    "@types/ramda": "0.30.2",
+    "@typescript-eslint/eslint-plugin": "8.33.1",
+    "@typescript-eslint/parser": "8.33.1",
+    "eslint": "9.28.0",
     "jest": "29.7.0",
-    "lerna": "8.1.9",
-    "mongodb-memory-server": "9.2.0",
-    "nx": "20.3.1",
-    "ramda": "0.30.0",
+    "lerna": "8.2.2",
+    "mongodb-memory-server": "10.1.4",
+    "nx": "20.8.2",
+    "ramda": "0.30.1",
     "rimraf": "6.0.1",
-    "ts-jest": "29.2.5",
+    "ts-jest": "29.3.4",
     "ts-node": "10.9.2",
-    "tslib": "2.8.0",
-    "typescript": "5.6.3"
+    "tslib": "2.8.1",
+    "typescript": "5.8.3"
   },
   "workspaces": [
     "packages/core",
@@ -39,6 +39,5 @@
     "distributed",
     "event",
     "event-driven"
-  ],
-  "version": "0.0.1"
+  ]
 }

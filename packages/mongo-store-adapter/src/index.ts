@@ -14,7 +14,7 @@ type Options = {
   readonly retryStartingDelay: number;
   readonly retryMaxDelay: number;
   readonly retryMaxAttempts: number;
-  readonly serializers: Serializer[];
+  readonly serializers: Serializer<unknown, unknown>[];
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
 export type MongoStoreAdapterOptions = Partial<Options>;

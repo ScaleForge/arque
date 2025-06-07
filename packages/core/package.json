@@ -23,9 +23,9 @@
   },
   "dependencies": {
     "async-mutex": "0.5.0",
-    "bs58": "5.0.0",
-    "debug": "4.3.7",
-    "exponential-backoff": "3.1.1",
+    "bs58": "6.0.0",
+    "debug": "4.4.1",
+    "exponential-backoff": "3.1.2",
     "lru-cache": "10.2.2"
   },
   "publishConfig": {
