@@ -21,11 +21,11 @@ export type MongoStoreAdapterOptions = Partial<Options>;
 
 export class MongoStoreAdapter implements StoreAdapter {
   private readonly logger = {
-    info: debug('info:MongoStoreAdapter'),
-    error: debug('error:MongoStoreAdapter'),
-    warn: debug('warn:MongoStoreAdapter'),
-    verbose: debug('verbose:MongoStoreAdapter'),
-    debug: debug('debug:MongoStoreAdapter'),
+    info: debug('arque:info:MongoStoreAdapter'),
+    error: debug('arque:error:MongoStoreAdapter'),
+    warn: debug('arque:warn:MongoStoreAdapter'),
+    verbose: debug('arque:verbose:MongoStoreAdapter'),
+    debug: debug('arque:debug:MongoStoreAdapter'),
   };
 
   private readonly joser: Joser;

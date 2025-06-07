@@ -3,11 +3,11 @@ import debug from 'debug';
 
 export class Broker {
   private readonly logger = {
-    info: debug('info:Broker'),
-    error: debug('error:Broker'),
-    warn: debug('warn:Broker'),
-    verbose: debug('verbose:Broker'),
-    debug: debug('debug:Broker'),
+    info: debug('arque:info:Broker'),
+    error: debug('arque:error:Broker'),
+    warn: debug('arque:warn:Broker'),
+    verbose: debug('arque:verbose:Broker'),
+    debug: debug('arque:debug:Broker'),
   };
 
   private subscriber: Subscriber | null = null;

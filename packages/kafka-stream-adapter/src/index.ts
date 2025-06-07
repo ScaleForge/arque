@@ -22,11 +22,11 @@ export type KafkaStreamAdapterOptions = Partial<Options>;
 
 export class KafkaStreamAdapter implements StreamAdapter {
   private readonly logger = {
-    info: debug('info:KafkaStreamAdapter'),
-    error: debug('error:KafkaStreamAdapter'),
-    warn: debug('warn:KafkaStreamAdapter'),
-    verbose: debug('verbose:KafkaStreamAdapter'),
-    debug: debug('debug:KafkaStreamAdapter'),
+    info: debug('arque:info:KafkaStreamAdapter'),
+    error: debug('arque:error:KafkaStreamAdapter'),
+    warn: debug('arque:warn:KafkaStreamAdapter'),
+    verbose: debug('arque:verbose:KafkaStreamAdapter'),
+    debug: debug('arque:debug:KafkaStreamAdapter'),
   };
 
   private readonly kafka: Kafka;

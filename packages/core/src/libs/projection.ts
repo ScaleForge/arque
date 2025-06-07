@@ -9,11 +9,11 @@ export class Projection<
   TEventHandler extends ProjectionEventHandler<Event, TState> = ProjectionEventHandler<Event, TState>,
 > {
   protected readonly logger = {
-    info: debug('info:arque:Projection'),
-    error: debug('error:arque:Projection'),
-    warn: debug('warn:arque:Projection'),
-    verbose: debug('verbose:arque:Projection'),
-    debug: debug('debug:arque:Projection'),
+    info: debug('arque:info:Projection'),
+    error: debug('arque:error:Projection'),
+    warn: debug('arque:warn:Projection'),
+    verbose: debug('arque:verbose:Projection'),
+    debug: debug('arque:debug:Projection'),
   };
 
   private readonly eventHandlers: Map<

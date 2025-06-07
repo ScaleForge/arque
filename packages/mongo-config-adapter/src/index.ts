@@ -13,13 +13,6 @@ type Options = {
 export type MongoConfigAdapterOptions = Partial<Options>;
 
 export class MongoConfigAdapter implements ConfigAdapter {
-  private readonly logger = {
-    info: debug('info:MongoStoreAdapter'),
-    error: debug('error:MongoStoreAdapter'),
-    warn: debug('warn:MongoStoreAdapter'),
-    verbose: debug('verbose:MongoStoreAdapter'),
-  };
-
   private readonly opts: Options;
 
   private readonly cache: LRUCache<number, string[]>;

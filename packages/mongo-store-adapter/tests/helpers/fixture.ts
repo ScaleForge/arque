@@ -6,7 +6,7 @@ export async function setupFixture() {
   const mongo = await MongoMemoryReplSet.create({
     replSet: {
       storageEngine: 'wiredTiger',
-      count: 3,
+      count: 1,
     },
     instanceOpts: [
       {

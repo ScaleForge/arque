@@ -29,11 +29,11 @@ export class Aggregate<
   TEventHandler extends EventHandler<Event, TState> = EventHandler<Event, TState>,
 > {
   private readonly logger = {
-    info: debug('info:arque:Aggregate'),
-    error: debug('error:arque:Aggregate'),
-    warn: debug('warn:arque:Aggregate'),
-    verbose: debug('verbose:arque:Aggregate'),
-    debug: debug('debug:arque:Aggregate'),
+    info: debug('arque:info:Aggregate'),
+    error: debug('arque:error:Aggregate'),
+    warn: debug('arque:warn:Aggregate'),
+    verbose: debug('arque:verbose:Aggregate'),
+    debug: debug('arque:debug:Aggregate'),
   };
 
   private mutex: Mutex;
