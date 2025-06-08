@@ -22,12 +22,12 @@
     "message": "echo $NODE_ENV"
   },
   "dependencies": {
-    "@arque/core": "0.9.1",
-    "@arque/mongo-store-adapter": "0.9.1",
+    "@arque/core": "0.10.17",
+    "@arque/mongo-store-adapter": "0.10.21",
     "@clack/prompts": "0.7.0",
-    "decimal.js": "10.4.3",
+    "decimal.js": "10.5.0",
     "get-port-please": "3.1.2",
-    "mongodb-memory-server": "9.2.0",
+    "mongodb-memory-server": "10.1.4",
     "ora": "5.4.1",
     "ramda": "0.30.1"
   },
