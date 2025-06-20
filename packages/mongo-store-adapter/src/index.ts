@@ -1,6 +1,6 @@
 /** build x1 */
-import { Event, StoreAdapter, Snapshot, AggregateVersionConflictError, EventId } from '@arque/core';
-import mongoose, { Connection, ConnectOptions } from 'mongoose';
+import { Event, StoreAdapter, Snapshot, AggregateVersionConflictError, EventId, AggregateIsFinalError } from '@arque/core';
+import mongoose, { Connection, ConnectOptions, Model } from 'mongoose';
 import * as schema from './libs/schema';
 import { backOff } from 'exponential-backoff';
 import { Joser, Serializer } from '@scaleforge/joser';
@@ -165,6 +165,113 @@ export class MongoStoreAdapter implements StoreAdapter {
     return count === 0;
   }
 
+  async finalizeAggregate(params: {
+    id: Buffer;
+  }) {
+    const EventModel = await this.model('Event');
+    const AggregateModel = await this.model('Aggregate');
+
+    await backOff(
+      async () => {
+        const session = await EventModel.startSession();
+
+        session.startTransaction({
+          writeConcern: {
+            w: 1,
+          },
+          retryWrites: true,
+        });
+
+        try {
+          await AggregateModel.updateOne(
+            { _id: params.id },
+            {
+              $set: {
+                final: true,
+              },
+            },
+            { session },
+          );
+
+          await EventModel.updateMany(
+            { 'aggregate.id': params.id },
+            {
+              $set: {
+                final: true,
+              },
+            },
+            { session },
+          );
+        } finally {
+          await session.abortTransaction();
+          await session.endSession();
+        }
+
+        try {
+          await session.commitTransaction();
+        } finally {
+          await session.endSession();
+        }
+      },
+      {
+        startingDelay: this.opts.retryStartingDelay,
+        maxDelay: this.opts.retryMaxDelay,
+        numOfAttempts: this.opts.retryMaxAttempts,
+        jitter: 'full',
+        retry: (err) => {
+          const retry = [
+            'SnapshotUnavailable',
+            'NotWritablePrimary',
+            'LockTimeout',
+            'NoSuchTransaction',
+            'InterruptedDueToReplStateChange',
+            'WriteConflict',
+          ].includes(err.codeName);
+          
+          if (retry) {
+            this.logger.warn('retry #finalizeAggregate: code=%s', err.codeName);
+          } else {
+            this.logger.error('error #finalizeAggregate: message=%s', err.message);
+          }
+
+          return retry;
+        },
+      },
+    );
+
+    const session = await EventModel.startSession();
+
+    session.startTransaction({
+      writeConcern: {
+        w: 1,
+      },
+      retryWrites: true,
+    });
+
+    await AggregateModel.updateOne(
+      { _id: params.id },
+      {
+        $set: {
+          final: true,
+        },
+      },
+      { session },
+    );
+
+    await EventModel.updateMany(
+      { 'aggregate.id': params.id },
+      {
+        $set: {
+          final: true,
+        },
+      },
+      { session },
+    );
+
+    await session.commitTransaction();
+    await session.endSession();
+  }
+
   async saveEvents(params: {
     aggregate: { id: Buffer; version: number; };
     timestamp: Date;
@@ -173,10 +280,19 @@ export class MongoStoreAdapter implements StoreAdapter {
   }): Promise<void> {
     assert(params.aggregate.version > 0, 'aggregate version must be greater than 0');
 
-    const [EventModel, AggregateModel] = await Promise.all([
-      this.model('Event'),
-      this.model('Aggregate'),
-    ]);
+    const AggregateModel = <Model<{ final?: true }>>(await this.model('Aggregate'));
+
+    const aggregate = await AggregateModel.findOne({
+      _id: params.aggregate.id,
+    }, { final: 1 }, {
+      readPreference: 'primary',
+    });
+
+    if (aggregate?.final) {
+      throw new AggregateIsFinalError(params.aggregate.id);
+    }
+
+    const EventModel = await this.model('Event');
 
     await backOff(async () => {
       const session = await EventModel.startSession();
@@ -213,6 +329,7 @@ export class MongoStoreAdapter implements StoreAdapter {
             {
               _id: params.aggregate.id,
               version: params.aggregate.version - 1,
+              final: { $exists: false },
             },
             {
               $set: {
@@ -244,11 +361,9 @@ export class MongoStoreAdapter implements StoreAdapter {
           }),
           timestamp: params.timestamp,
         })), { session });
-      } catch(err) {
+      } finally {
         await session.abortTransaction();
         await session.endSession();
-
-        throw err;
       }
 
       try {

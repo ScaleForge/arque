@@ -1,4 +1,3 @@
-import { EventId } from '../event-id';
 import { Event } from '../types';
 
 export class AggregateVersionConflictError extends Error {
@@ -6,6 +5,12 @@ export class AggregateVersionConflictError extends Error {
     super(
       `aggregate version conflict: id=${id.toString('hex')} version=${version}`
     );
+  }
+}
+
+export class AggregateIsFinalError extends Error {
+  constructor(id: Buffer) {
+    super(`aggregate is final: id=${id.toString('hex')}`);
   }
 }
 
@@ -66,6 +71,10 @@ export interface StoreAdapter {
       version: number;
     };
   }): Promise<boolean>;
+
+  finalizeAggregate(params: {
+    id: Buffer;
+  }): Promise<void>;
 
   close(): Promise<void>;
 }

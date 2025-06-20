@@ -173,6 +173,18 @@ export class Aggregate<
     }
   }
 
+  public async finalize() {
+    const release = await this.mutex.acquire();
+
+    try {
+      await this.store.finalizeAggregate({
+        id: this.id,
+      });
+    } finally {
+      release();
+    }
+  }
+
   private async dispatch(params: {
     aggregate: {
       id: Buffer;

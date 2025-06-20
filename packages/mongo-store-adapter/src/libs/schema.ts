@@ -10,22 +10,27 @@ const Event = new Schema({
   body: Schema.Types.Mixed,
   meta: Schema.Types.Mixed,
   timestamp: Date,
+  final: Boolean,
 }, {
   id: false,
   autoIndex: true,
 });
 Event.index({ 'aggregate.id': 1, 'aggregate.version': -1 }, { unique: true, background: false });
+Event.index({ 'aggregate.id': 1 });
+Event.index({ 'final': 1 });
 Event.index({ 'type': 1, 'timestamp': -1 });
 
 const Aggregate = new Schema({
   _id: Buffer,
   version: Number,
   timestamp: Date,
+  final: Boolean,
 }, {
   id: false,
   autoIndex: true,
 });
 Aggregate.index({ '_id': 1, 'version': 1 }, { unique: true, background: false });
+Aggregate.index({ 'final': 1 });
 
 const Snapshot = new Schema({
   aggregate: {
