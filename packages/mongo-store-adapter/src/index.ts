@@ -48,7 +48,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
       retryStartingDelay: opts?.retryStartingDelay ?? 100,
       retryMaxDelay: opts?.retryMaxDelay ?? 1600,
-      retryMaxAttempts: opts?.retryMaxAttempts ?? 10,
+      retryMaxAttempts: opts?.retryMaxAttempts ?? 20,
       maxPoolSize,
       minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
@@ -202,9 +202,11 @@ export class MongoStoreAdapter implements StoreAdapter {
             },
             { session },
           );
-        } finally {
+        } catch (err) {
           await session.abortTransaction();
           await session.endSession();
+
+          throw err;
         }
 
         try {
@@ -238,38 +240,6 @@ export class MongoStoreAdapter implements StoreAdapter {
         },
       },
     );
-
-    const session = await EventModel.startSession();
-
-    session.startTransaction({
-      writeConcern: {
-        w: 1,
-      },
-      retryWrites: true,
-    });
-
-    await AggregateModel.updateOne(
-      { _id: params.id },
-      {
-        $set: {
-          final: true,
-        },
-      },
-      { session },
-    );
-
-    await EventModel.updateMany(
-      { 'aggregate.id': params.id },
-      {
-        $set: {
-          final: true,
-        },
-      },
-      { session },
-    );
-
-    await session.commitTransaction();
-    await session.endSession();
   }
 
   async saveEvents(params: {
@@ -361,9 +331,11 @@ export class MongoStoreAdapter implements StoreAdapter {
           }),
           timestamp: params.timestamp,
         })), { session });
-      } finally {
+      } catch (err) {
         await session.abortTransaction();
         await session.endSession();
+
+        throw err;
       }
 
       try {
