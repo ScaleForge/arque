@@ -12,7 +12,7 @@ import { inspect } from 'util';
 type Options = {
   prefix: string;
   brokers: string[];
-  serializers?: Serializer[];
+  serializers?: Serializer<never, never>[];
   minBytes: number;
   maxBytes: number;
   maxBytesPerPartition: number;
