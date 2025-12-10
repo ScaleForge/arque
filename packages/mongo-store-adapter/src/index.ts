@@ -166,8 +166,10 @@ export class MongoStoreAdapter implements StoreAdapter {
   async finalizeAggregate(params: {
     id: Buffer;
   }) {
-    const EventModel = await this.model('Event');
-    const AggregateModel = await this.model('Aggregate');
+    const [EventModel, AggregateModel] = await Promise.all([
+      this.model('Event'),
+      this.model('Aggregate'),
+    ]);
 
     await backOff(
       async () => {
