@@ -127,6 +127,8 @@ export class MongoStoreAdapter implements StoreAdapter {
   }
 
   async saveProjectionCheckpoint(params: { projection: string; aggregate: { id: Buffer; version: number; }; }): Promise<void> {
+    const timestamp = new Date();
+
     const ProjectionCheckpointModel = await this.model('ProjectionCheckpoint');
 
     await ProjectionCheckpointModel.updateOne(
@@ -136,9 +138,7 @@ export class MongoStoreAdapter implements StoreAdapter {
           'aggregate.version': params.aggregate.version,
         },
         $setOnInsert: {
-          projection: params.projection,
-          'aggregate.id': params.aggregate.id,
-          timestamp: new Date(),
+          timestamp,
         },
       },
       {

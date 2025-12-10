@@ -1,15 +1,16 @@
 {
   "scripts": {
-    "example:basic-aggregate": "DEBUG=* ts-node ./src/basic-aggregate.ts",
+    "example:aggregate": "DEBUG=* ts-node ./src/aggregate.ts",
     "example:snapshot": "DEBUG=* ts-node ./src/snapshot.ts",
-    "example:projection": "DEBUG=* ts-node ./src/projection.ts"
+    "example:projection": "DEBUG=* ts-node ./src/projection.ts",
+    "start": "npm run example:aggregate && npm run example:projection && npm run example:snapshot"
   },
   "dependencies": {
-    "@arque/core": "0.2.4",
-    "@arque/kafka-stream-adapter": "0.2.8",
-    "@arque/mongo-config-adapter": "0.2.5",
-    "@arque/mongo-store-adapter": "0.2.6",
-    "debug": "4.3.4"
+    "@arque/core": "0.11.4",
+    "@arque/kafka-stream-adapter": "0.11.7",
+    "@arque/mongo-config-adapter": "0.11.4",
+    "@arque/mongo-store-adapter": "0.11.7",
+    "debug": "4.4.3"
   },
   "private": true
 }
