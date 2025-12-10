@@ -136,8 +136,6 @@ export class MongoStoreAdapter implements StoreAdapter {
       {
         $set: {
           'aggregate.version': params.aggregate.version,
-        },
-        $setOnInsert: {
           timestamp,
         },
       },

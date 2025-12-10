@@ -13,12 +13,9 @@ const Event = new Schema({
   final: Boolean,
 }, {
   id: false,
-  autoIndex: true,
 });
 Event.index({ 'aggregate.id': 1, 'aggregate.version': -1 }, { unique: true, background: false });
 Event.index({ 'aggregate.id': 1 });
-Event.index({ 'final': 1 });
-Event.index({ 'type': 1, 'timestamp': -1 });
 
 const Aggregate = new Schema({
   _id: Buffer,
@@ -27,10 +24,8 @@ const Aggregate = new Schema({
   final: Boolean,
 }, {
   id: false,
-  autoIndex: true,
 });
 Aggregate.index({ '_id': 1, 'version': 1 }, { unique: true, background: false });
-Aggregate.index({ 'final': 1 });
 
 const Snapshot = new Schema({
   aggregate: {
@@ -41,7 +36,6 @@ const Snapshot = new Schema({
   timestamp: Date,
 }, {
   id: false,
-  autoIndex: true,
 });
 Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': -1 }, { unique: true, background: false });
 
@@ -54,7 +48,6 @@ const ProjectionCheckpoint = new Schema({
   timestamp: Date,
 }, {
   id: false,
-  autoIndex: true,
 });
 ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1 }, { unique: true, background: false });
 ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1, 'aggregate.version': -1 });
