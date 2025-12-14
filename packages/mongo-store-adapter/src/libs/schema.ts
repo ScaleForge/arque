@@ -25,7 +25,6 @@ const Aggregate = new Schema({
 }, {
   id: false,
 });
-Aggregate.index({ '_id': 1, 'version': 1 }, { unique: true, background: false });
 
 const Snapshot = new Schema({
   aggregate: {

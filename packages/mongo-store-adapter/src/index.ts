@@ -47,8 +47,8 @@ export class MongoStoreAdapter implements StoreAdapter {
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
       retryStartingDelay: opts?.retryStartingDelay ?? 100,
-      retryMaxDelay: opts?.retryMaxDelay ?? 1600,
-      retryMaxAttempts: opts?.retryMaxAttempts ?? 20,
+      retryMaxDelay: opts?.retryMaxDelay ?? 800,
+      retryMaxAttempts: opts?.retryMaxAttempts ?? 32,
       maxPoolSize,
       minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
@@ -250,29 +250,55 @@ export class MongoStoreAdapter implements StoreAdapter {
   }): Promise<void> {
     assert(params.aggregate.version > 0, 'aggregate version must be greater than 0');
 
-    const AggregateModel = <Model<{ final?: true }>>(await this.model('Aggregate'));
+    const connection = await this.connection();
 
-    const aggregate = await AggregateModel.findOne({
-      _id: params.aggregate.id,
-    }, { final: 1 }, {
-      readPreference: 'primary',
-    });
-
-    if (aggregate?.final) {
-      throw new AggregateIsFinalError(params.aggregate.id);
-    }
-
-    const EventModel = await this.model('Event');
+    const [AggregateModel, EventModel] = await Promise.all([
+      <Promise<Model<{ final?: true, version: number }>>>this.model('Aggregate'),
+      this.model('Event'),
+    ]);
 
     await backOff(async () => {
-      const session = await EventModel.startSession();
+      const aggregate = await AggregateModel.findOne({
+        _id: params.aggregate.id,
+      }, { final: 1, version: 1 }, {
+        readPreference: 'secondaryPreferred',
+      });
+
+      if (aggregate?.final) {
+        throw new AggregateIsFinalError(params.aggregate.id);
+      }
+
+      if (params.aggregate.version === 1 && aggregate) {
+        throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
+      }
+
+      if (aggregate?.version !== params.aggregate.version - 1) {
+        throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
+      }
+
+      const session = await connection.startSession();
 
       session.startTransaction({
         writeConcern: {
-          w: 1,
+          w: 'majority',
         },
         retryWrites: true,
       });
+
+      await EventModel.insertMany(params.events.map((event, index) => ({
+        _id: event.id.buffer,
+        type: event.type,
+        aggregate: {
+          id: params.aggregate.id,
+          version: params.aggregate.version + index,
+        },
+        body: this.serialize(event.body),
+        meta: this.serialize({
+          ...event.meta,
+          ...params.meta,
+        }),
+        timestamp: params.timestamp,
+      })), { session });
 
       try {
         if (params.aggregate.version === 1) {
@@ -316,21 +342,6 @@ export class MongoStoreAdapter implements StoreAdapter {
             throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
           }
         }
-
-        await EventModel.insertMany(params.events.map((event, index) => ({
-          _id: event.id.buffer,
-          type: event.type,
-          aggregate: {
-            id: params.aggregate.id,
-            version: params.aggregate.version + index,
-          },
-          body: this.serialize(event.body),
-          meta: this.serialize({
-            ...event.meta,
-            ...params.meta,
-          }),
-          timestamp: params.timestamp,
-        })), { session });
       } catch (err) {
         await session.abortTransaction();
         await session.endSession();
