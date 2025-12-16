@@ -184,7 +184,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
         session.startTransaction({
           writeConcern: {
-            w: 1,
+            w: 'majority',
           },
           retryWrites: true,
         });
@@ -253,7 +253,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     retryMaxDelay?: number;
     retryMaxAttempts?: number;
     readPreference?: 'primary' |'secondaryPreferred';
-    writeConcern?: 'majority' | 'primary'
+    writeConcern?: 'majority' | 'primary' | 2 | 3
   }): Promise<void> {
     assert(params.aggregate.version > 0, 'aggregate version must be greater than 0');
 
@@ -285,7 +285,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
       session.startTransaction({
         writeConcern: {
-          w: opts?.writeConcern === 'majority' ? 'majority' : 1,
+          w: opts?.writeConcern === 'primary' ? 1 : opts?.writeConcern ?? 1,
         },
       });
 
