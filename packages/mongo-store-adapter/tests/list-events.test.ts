@@ -1,6 +1,6 @@
 import R from 'ramda';
 import { randomBytes } from 'crypto';
-import { EventId } from '@arque/core';
+import { EventId, Event } from '@arque/core';
 import { setupFixture } from './helpers/fixture';
 import { generateEvent } from './helpers/generate-event';
 
@@ -23,6 +23,8 @@ describe('MongoStoreAdapter#listEvents', () => {
       aggregate: {
         id,
       },
+    }, {
+      readPreference: 'primary',
     });
 
     let version = 1;
@@ -72,6 +74,8 @@ describe('MongoStoreAdapter#listEvents', () => {
         id,
         version: 5,
       },
+    }, {
+      readPreference: 'primary',
     });
 
     let version = 6;

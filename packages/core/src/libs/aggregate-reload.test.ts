@@ -62,13 +62,13 @@ describe('Aggregate#reload', () => {
 
     expect(aggregate.state).toEqual({ balance: events.length * amount });
     expect(aggregate.version).toEqual(events.length);
-    expect(store.listEvents).toBeCalledWith({
+    expect(store.listEvents).toHaveBeenCalledWith({
       aggregate: {
         id,
         version: 0,
       },
     });
-    expect(store.findLatestSnapshot).toBeCalledWith({
+    expect(store.findLatestSnapshot).toHaveBeenCalledWith({
       aggregate: {
         id,
         version: 0,
@@ -121,13 +121,13 @@ describe('Aggregate#reload', () => {
 
     expect(aggregate.state).toEqual({ balance: 50 + events.length * amount });
     expect(aggregate.version).toEqual(events.length + 5);
-    expect(store.listEvents).toBeCalledWith({
+    expect(store.listEvents).toHaveBeenCalledWith({
       aggregate: {
         id,
         version: 5,
       },
     });
-    expect(store.findLatestSnapshot).toBeCalledWith({
+    expect(store.findLatestSnapshot).toHaveBeenCalledWith({
       aggregate: {
         id,
         version: 0,
@@ -177,7 +177,7 @@ describe('Aggregate#reload', () => {
 
     expect(aggregate.state).toEqual({ balance: events.length * amount });
     expect(aggregate.version).toEqual(events.length);
-    expect(store.listEvents).toBeCalledTimes(5);
-    expect(store.findLatestSnapshot).toBeCalledTimes(5);
+    expect(store.listEvents).toHaveBeenCalledTimes(5);
+    expect(store.findLatestSnapshot).toHaveBeenCalledTimes(5);
   });
 });

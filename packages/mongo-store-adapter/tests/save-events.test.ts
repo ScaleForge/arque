@@ -2,7 +2,21 @@ import { generateEvent } from './helpers/generate-event';
 import R from 'ramda';
 import { setupFixture } from './helpers/fixture';
 import { randomBytes } from 'crypto';
-import { AggregateVersionConflictError } from '@arque/core';
+import { AggregateVersionConflictError, Event, StoreAdapter } from '@arque/core';
+import { backOff } from 'exponential-backoff';
+
+async function saveEvents(params: {
+  aggregate: { id: Buffer; version: number; };
+  timestamp: Date;
+  events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
+}, store: StoreAdapter) {
+  await backOff(async () => store.saveEvents(params), {
+    startingDelay: 10,
+    maxDelay: 200,
+    numOfAttempts: 16,
+    retry: (error) => error instanceof AggregateVersionConflictError,
+  });
+}
 
 describe('MongoStoreAdapter#saveEvents', () => {
   test.concurrent('save event', async () => {
@@ -40,14 +54,14 @@ describe('MongoStoreAdapter#saveEvents', () => {
     const { store, teardown } = await setupFixture();
 
     for await (const version of R.range(1, 101)) {
-      await store.saveEvents({
+      await saveEvents({
         aggregate: {
           id,
           version,
         },
         timestamp: new Date(),
         events: [R.pick(['id', 'type', 'body', 'meta'], generateEvent())],
-      });
+      }, store);
     }
 
     await teardown();
@@ -60,14 +74,14 @@ describe('MongoStoreAdapter#saveEvents', () => {
       const event = generateEvent();
 
       for await (const version of R.range(1, 101)) {
-        await store.saveEvents({
+        await saveEvents({
           aggregate: {
             ...event.aggregate,
             version,
           },
           timestamp: event.timestamp,
           events: [R.pick(['id', 'type', 'body', 'meta'], generateEvent())],
-        });
+        }, store);
       }
     }, 10));
 
@@ -81,23 +95,23 @@ describe('MongoStoreAdapter#saveEvents', () => {
 
     const { store, teardown } = await setupFixture();
 
-    await store.saveEvents({
+    await saveEvents({
       aggregate: {
         id,
         version: 1,
       },
       timestamp: new Date(),
       events: [R.pick(['id', 'type', 'body', 'meta'], generateEvent())],
-    });
+    }, store);
 
-    await expect(store.saveEvents({
+    await expect(saveEvents({
       aggregate: {
         id,
         version: 1,
       },
       timestamp: new Date(),
       events: [R.pick(['id', 'type', 'body', 'meta'], generateEvent())],
-    })).rejects.toThrow(AggregateVersionConflictError);
+    }, store)).rejects.toThrow(AggregateVersionConflictError);
 
     await teardown();
   });
@@ -107,41 +121,41 @@ describe('MongoStoreAdapter#saveEvents', () => {
 
     const { store, teardown } = await setupFixture();
 
-    await store.saveEvents({
+    await saveEvents({
       aggregate: {
         id,
         version: 1,
       },
       timestamp: new Date(),
       events: R.times(() => R.pick(['id', 'type', 'body', 'meta'], generateEvent()), 5),
-    });
+    }, store);
 
-    await expect(store.saveEvents({
+    await expect(saveEvents({
       aggregate: {
         id,
         version: 7,
       },
       timestamp: new Date(),
       events: [R.pick(['id', 'type', 'body', 'meta'], generateEvent())],
-    })).rejects.toThrow(AggregateVersionConflictError);
+    }, store)).rejects.toThrow(AggregateVersionConflictError);
 
-    await expect(store.saveEvents({
+    await expect(saveEvents({
       aggregate: {
         id,
         version: 5,
       },
       timestamp: new Date(),
       events: [R.pick(['id', 'type', 'body', 'meta'], generateEvent())],
-    })).rejects.toThrow(AggregateVersionConflictError);
+    }, store)).rejects.toThrow(AggregateVersionConflictError);
 
-    await expect(store.saveEvents({
+    await expect(saveEvents({
       aggregate: {
         id,
         version: 6,
       },
       timestamp: new Date(),
       events: [R.pick(['id', 'type', 'body', 'meta'], generateEvent())],
-    })).resolves.toBeUndefined();
+    }, store)).resolves.toBeUndefined();
 
     await teardown();
   });

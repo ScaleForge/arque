@@ -11,13 +11,20 @@ import { match, P } from 'ts-pattern';
 
 type Options = {
   readonly uri: string;
-  readonly retryStartingDelay: number;
-  readonly retryMaxDelay: number;
-  readonly retryMaxAttempts: number;
   readonly serializers: Serializer<unknown, unknown>[];
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
 export type MongoStoreAdapterOptions = Partial<Options>;
+
+const RetrieableMongoErrorCodes = new Set([
+  'SnapshotUnavailable',
+  'NotWritablePrimary',
+  'LockTimeout',
+  'NoSuchTransaction',
+  'InterruptedDueToReplStateChange',
+  'WriteConflict',
+]);
+
 
 export class MongoStoreAdapter implements StoreAdapter {
   private readonly logger = {
@@ -46,9 +53,6 @@ export class MongoStoreAdapter implements StoreAdapter {
 
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
-      retryStartingDelay: opts?.retryStartingDelay ?? 100,
-      retryMaxDelay: opts?.retryMaxDelay ?? 800,
-      retryMaxAttempts: opts?.retryMaxAttempts ?? 32,
       maxPoolSize,
       minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
@@ -151,20 +155,23 @@ export class MongoStoreAdapter implements StoreAdapter {
   async checkProjectionCheckpoint(params: { projection: string; aggregate: { id: Buffer; version: number; }; }): Promise<boolean> {
     const ProjectionCheckpointModel = await this.model('ProjectionCheckpoint');
     
-    const count = await ProjectionCheckpointModel.countDocuments({
+    const result = await ProjectionCheckpointModel.findOne({
       projection: params.projection,
       'aggregate.id': params.aggregate.id,
-      'aggregate.version': { $gte: params.aggregate.version },
     }, {
       limit: 1,
-      readPreference: 'primaryPreferred',
-    });
+      readPreference: 'primary',
+    }).select({ 'aggregate.version': 1 });
 
-    return count === 0;
+    return !result || params.aggregate.version < result['aggregate']['version'];
   }
 
   async finalizeAggregate(params: {
     id: Buffer;
+  }, opts?: {
+    retryStartingDelay?: number;
+    retryMaxDelay?: number;
+    retryMaxAttempts?: number;
   }) {
     const [EventModel, AggregateModel] = await Promise.all([
       this.model('Event'),
@@ -216,19 +223,13 @@ export class MongoStoreAdapter implements StoreAdapter {
         }
       },
       {
-        startingDelay: this.opts.retryStartingDelay,
-        maxDelay: this.opts.retryMaxDelay,
-        numOfAttempts: this.opts.retryMaxAttempts,
+        startingDelay: opts?.retryStartingDelay ?? 50,
+        maxDelay: opts?.retryMaxDelay ?? 450,
+        numOfAttempts: opts?.retryMaxAttempts ?? 16,
+        timeMultiple: 1.5,
         jitter: 'full',
         retry: (err) => {
-          const retry = [
-            'SnapshotUnavailable',
-            'NotWritablePrimary',
-            'LockTimeout',
-            'NoSuchTransaction',
-            'InterruptedDueToReplStateChange',
-            'WriteConflict',
-          ].includes(err.codeName);
+          const retry = RetrieableMongoErrorCodes.has(err.codeName);
           
           if (retry) {
             this.logger.warn('retry #finalizeAggregate: code=%s', err.codeName);
@@ -247,6 +248,12 @@ export class MongoStoreAdapter implements StoreAdapter {
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta'>[];
     meta?: Event['meta'];
+  }, opts?: {
+    retryStartingDelay?: number;
+    retryMaxDelay?: number;
+    retryMaxAttempts?: number;
+    readPreference?: 'primary' |'secondaryPreferred';
+    writeConcern?: 'majority' | 'primary'
   }): Promise<void> {
     assert(params.aggregate.version > 0, 'aggregate version must be greater than 0');
 
@@ -257,117 +264,99 @@ export class MongoStoreAdapter implements StoreAdapter {
       this.model('Event'),
     ]);
 
+    const aggregate = await AggregateModel.findById(params.aggregate.id, { final: 1, version: 1 }, {
+      readPreference: opts?.readPreference ?? 'secondaryPreferred',
+    });
+
+    if (aggregate?.final) {
+      throw new AggregateIsFinalError(params.aggregate.id);
+    }
+
+    if (params.aggregate.version === 1 && aggregate) {
+      throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
+    }
+
+    if ((aggregate?.version ?? 0) !== params.aggregate.version - 1) {
+      throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
+    }
+
     await backOff(async () => {
-      const aggregate = await AggregateModel.findOne({
-        _id: params.aggregate.id,
-      }, { final: 1, version: 1 }, {
-        readPreference: 'secondaryPreferred',
-      });
-
-      if (aggregate?.final) {
-        throw new AggregateIsFinalError(params.aggregate.id);
-      }
-
-      if (params.aggregate.version === 1 && aggregate) {
-        throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
-      }
-
-      if (aggregate?.version !== params.aggregate.version - 1) {
-        throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
-      }
-
       const session = await connection.startSession();
 
       session.startTransaction({
         writeConcern: {
-          w: 'majority',
+          w: opts?.writeConcern === 'majority' ? 'majority' : 1,
         },
-        retryWrites: true,
       });
 
-      await EventModel.insertMany(params.events.map((event, index) => ({
-        _id: event.id.buffer,
-        type: event.type,
-        aggregate: {
-          id: params.aggregate.id,
-          version: params.aggregate.version + index,
-        },
-        body: this.serialize(event.body),
-        meta: this.serialize({
-          ...event.meta,
-          ...params.meta,
-        }),
-        timestamp: params.timestamp,
-      })), { session });
+      let _aggregate: { version: number } | null = null;
 
       try {
-        if (params.aggregate.version === 1) {
-          try {
-            await AggregateModel.create(
-              [
-                {
-                  _id: params.aggregate.id,
-                  version: params.events.length,
-                  timestamp: params.timestamp,
-                },
-              ],
-              { session }
-            );
-          } catch (err) {
-            if (err.name === 'MongoServerError' && err.code === 11000) {
-              throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
-            }
+        await EventModel.insertMany(params.events.map((event, index) => ({
+          _id: event.id.buffer,
+          type: event.type,
+          aggregate: {
+            id: params.aggregate.id,
+            version: params.aggregate.version + index,
+          },
+          body: this.serialize(event.body),
+          meta: this.serialize({
+            ...event.meta,
+            ...params.meta,
+          }),
+          timestamp: params.timestamp,
+        })), { session });
 
-            throw err;
-          }
-        } else {
-          const { modifiedCount: count } = await AggregateModel.updateOne(
-            {
-              _id: params.aggregate.id,
-              version: params.aggregate.version - 1,
-              final: { $exists: false },
-            },
-            {
-              $set: {
-                version: params.aggregate.version + params.events.length - 1,
-                timestamp: params.timestamp,
-              },
-            },
-            {
-              session,
-            }
-          );
+        const version = params.aggregate.version + params.events.length - 1;
 
-          if (count === 0) {
-            throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
+        _aggregate = await AggregateModel.findByIdAndUpdate(
+          params.aggregate.id,
+          {
+            $set: {
+              version,
+              timestamp: params.timestamp,
+            },
+          },
+          {
+            session,
+            upsert: true,
           }
-        }
+        );
       } catch (err) {
         await session.abortTransaction();
+        await session.endSession();
+
+        if (err.code === 11000) {
+          throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
+        }
+
+        throw err;
+      }
+
+      if ((_aggregate?.version ?? 0) !== params.aggregate.version - 1) {
+        await session.abortTransaction();
+        await session.endSession();
+
+        throw new AggregateVersionConflictError(params.aggregate.id, params.aggregate.version);
+      }
+
+      try {
+        await session.commitTransaction();
+      } catch (err) {
         await session.endSession();
 
         throw err;
       }
 
-      try {
-        await session.commitTransaction();
-      } finally {
-        await session.endSession();
-      }
+      await session.endSession();
     }, {
-      startingDelay: this.opts.retryStartingDelay,
-      maxDelay: this.opts.retryMaxDelay,
-      numOfAttempts: this.opts.retryMaxAttempts,
+      startingDelay: opts?.retryStartingDelay ?? 50,
+      maxDelay: opts?.retryMaxDelay ?? 450,
+      numOfAttempts: opts?.retryMaxAttempts ?? 16,
+      timeMultiple: 1.5,
       jitter: 'full',
       retry: (err) => {
-        const retry = [
-          'SnapshotUnavailable',
-          'NotWritablePrimary',
-          'LockTimeout',
-          'NoSuchTransaction',
-          'InterruptedDueToReplStateChange',
-          'WriteConflict',
-        ].includes(err.codeName);
+        const retry = RetrieableMongoErrorCodes.has(err.codeName);
         
         if (retry) {
           this.logger.warn('retry #saveEvents: code=%s', err.codeName);
@@ -385,10 +374,14 @@ export class MongoStoreAdapter implements StoreAdapter {
       id: Buffer;
       version?: number;
     };
+  }, opts?: {
+    readPreference?: 'primary' |'secondaryPreferred';
   }): Promise<AsyncIterableIterator<TEvent>>;
 
   async listEvents<TEvent = Event>(params: {
     type: number;
+  }, opts?: {
+    readPreference?: 'primary' |'secondaryPreferred';
   }): Promise<AsyncIterableIterator<TEvent>> 
 
   async listEvents<TEvent = Event>(params: {
@@ -397,6 +390,8 @@ export class MongoStoreAdapter implements StoreAdapter {
       version?: number;
     };
     type?: number;
+  }, opts?: {
+    readPreference?: 'primary' |'secondaryPreferred';
   }): Promise<AsyncIterableIterator<TEvent>> {
     const _this = this;
     
@@ -430,7 +425,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     }
 
     const cursor = EventModel.find(query, null, {
-      readPreference: 'primaryPreferred',
+      readPreference: opts?.readPreference ?? 'secondaryPreferred',
     }).sort({ 'aggregate.id': 1, 'aggregate.version': 1 }).cursor({
       batchSize: 256,
     });
@@ -472,7 +467,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       state: this.serialize(<never>params.state),
     }], {
       validateBeforeSave: false,
-      w: 1
+      w: 1,
     });
   }
 
@@ -487,7 +482,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gt: params.aggregate.version },
     }, null, {
-      readPreference: 'secondary',
+      readPreference: 'secondaryPreferred',
     }).sort({
       'aggregate.version': -1,
     });

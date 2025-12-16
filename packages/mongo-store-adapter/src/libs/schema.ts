@@ -14,8 +14,9 @@ const Event = new Schema({
 }, {
   id: false,
 });
-Event.index({ 'aggregate.id': 1, 'aggregate.version': -1 }, { unique: true, background: false });
-Event.index({ 'aggregate.id': 1 });
+Event.index({ 'aggregate.id': 'hashed' });
+Event.index({ 'aggregate.id': 1, 'aggregate.version': 1 });
+Event.index({ 'type': 1, 'timestamp': 1 });
 
 const Aggregate = new Schema({
   _id: Buffer,
@@ -25,6 +26,7 @@ const Aggregate = new Schema({
 }, {
   id: false,
 });
+Aggregate.index({ '_id': 'hashed' });
 
 const Snapshot = new Schema({
   aggregate: {
@@ -36,7 +38,8 @@ const Snapshot = new Schema({
 }, {
   id: false,
 });
-Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': -1 }, { unique: true, background: false });
+Snapshot.index({ 'aggregate.id': 'hashed' });
+Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': -1 });
 
 const ProjectionCheckpoint = new Schema({
   projection: String,
@@ -48,7 +51,6 @@ const ProjectionCheckpoint = new Schema({
 }, {
   id: false,
 });
-ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1 }, { unique: true, background: false });
-ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 1, 'aggregate.version': -1 });
+ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 'hashed' });
 
 export { Event, Aggregate, Snapshot, ProjectionCheckpoint };

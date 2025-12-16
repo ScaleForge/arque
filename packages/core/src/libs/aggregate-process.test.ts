@@ -138,13 +138,13 @@ describe('Aggregate#process', () => {
     
     expect(aggregate.state).toEqual({ balance: 0 });
     expect(aggregate.version).toEqual(0);
-    expect(store.listEvents).toBeCalledWith({
+    expect(store.listEvents).toHaveBeenCalledWith({
       aggregate: {
         id,
         version: 0,
       },
     });
-    expect(store.findLatestSnapshot).toBeCalledWith({
+    expect(store.findLatestSnapshot).toHaveBeenCalledWith({
       aggregate: {
         id,
         version: 0,

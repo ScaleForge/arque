@@ -13,6 +13,6 @@
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
     "module": "commonjs",
-    "types": ["node"]
+    "types": ["jest", "node"]
   }
 }

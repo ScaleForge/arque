@@ -4,15 +4,13 @@ import mongoose from 'mongoose';
 
 export async function setupFixture() {
   const mongo = await MongoMemoryReplSet.create({
+    binary: {
+      version: '8.0.3',
+    },
     replSet: {
       storageEngine: 'wiredTiger',
-      count: 1,
+      count: 3,
     },
-    instanceOpts: [
-      {
-        launchTimeout: 15000,
-      },
-    ],
   });
 
   await mongo.waitUntilRunning();
