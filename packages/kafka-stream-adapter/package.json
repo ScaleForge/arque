@@ -1,6 +1,6 @@
 {
   "name": "@arque/kafka-stream-adapter",
-  "version": "0.12.0-alpha.0",
+  "version": "0.12.0-alpha.1",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {
-    "@arque/core": "^0.12.0-alpha.0",
+    "@arque/core": "^0.12.0-alpha.1",
     "@scaleforge/joser": "0.8.8",
     "debug": "4.4.3",
     "exponential-backoff": "3.1.3",
