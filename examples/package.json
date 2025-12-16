@@ -6,10 +6,10 @@
     "start": "npm run example:aggregate && npm run example:projection && npm run example:snapshot"
   },
   "dependencies": {
-    "@arque/core": "0.11.4",
-    "@arque/kafka-stream-adapter": "0.11.7",
-    "@arque/mongo-config-adapter": "0.11.4",
-    "@arque/mongo-store-adapter": "0.11.7",
+    "@arque/core": "0.12.0-alpha.2",
+    "@arque/kafka-stream-adapter": "0.12.0-alpha.2",
+    "@arque/mongo-config-adapter": "0.12.0-alpha.2",
+    "@arque/mongo-store-adapter": "0.12.0-alpha.2",
     "debug": "4.4.3"
   },
   "private": true
