@@ -52,5 +52,6 @@ const ProjectionCheckpoint = new Schema({
   id: false,
 });
 ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 'hashed' });
+ProjectionCheckpoint.index({ 'timestamp': 1 }, { expireAfterSeconds: 60 * 60 * 24 * 7 });
 
 export { Event, Aggregate, Snapshot, ProjectionCheckpoint };
