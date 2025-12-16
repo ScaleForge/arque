@@ -53,12 +53,14 @@ async function main() {
       {
         type: EventType.WalletCredited,
         handle: (ctx, event) => {
+          console.log('WalletCredited');
           ctx.state.balance = event.body.balance;
         },
       },
       {
         type: EventType.WalletDebited,
         handle: (ctx, event) => {
+          console.log('WalletDebited');
           ctx.state.balance = event.body.balance;
         },
       },
@@ -93,6 +95,15 @@ async function main() {
     args: [
       {
         amount: 5,
+      },
+    ],
+  });
+
+  await aggregate.process({
+    type: WalletAggregateCommandType.Credit,
+    args: [
+      {
+        amount: 15,
       },
     ],
   });

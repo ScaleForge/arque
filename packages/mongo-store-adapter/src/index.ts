@@ -153,7 +153,7 @@ export class MongoStoreAdapter implements StoreAdapter {
   }
 
   async checkProjectionCheckpoint(params: { projection: string; aggregate: { id: Buffer; version: number; }; }): Promise<boolean> {
-    const ProjectionCheckpointModel = await this.model('ProjectionCheckpoint');
+    const ProjectionCheckpointModel = <Model<{ aggregate: { version: number } }>>(await this.model('ProjectionCheckpoint'));
     
     const result = await ProjectionCheckpointModel.findOne({
       projection: params.projection,
@@ -163,7 +163,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       readPreference: 'primary',
     }).select({ 'aggregate.version': 1 });
 
-    return !result || params.aggregate.version < result['aggregate']['version'];
+    return !result || result.aggregate.version < params.aggregate.version ;
   }
 
   async finalizeAggregate(params: {
