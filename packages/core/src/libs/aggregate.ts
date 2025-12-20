@@ -284,7 +284,7 @@ export class Aggregate<
       }, {
         jitter: 'full',
         maxDelay: 450,
-        numOfAttempts: opts?.maxRetries ?? 24,
+        numOfAttempts: opts?.maxRetries ?? 20,
         startingDelay: 50,
         timeMultiple: 1.5,
         retry: (err) => {

@@ -39,7 +39,7 @@ const Snapshot = new Schema({
   id: false,
 });
 Snapshot.index({ 'aggregate.id': 'hashed' });
-Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': -1 });
+Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': 1 });
 
 const ProjectionCheckpoint = new Schema({
   projection: String,
