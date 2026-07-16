@@ -188,7 +188,6 @@ export class MongoStoreAdapter implements StoreAdapter {
           writeConcern: {
             w: 'majority',
           },
-          retryWrites: true,
         });
 
         try {
@@ -266,7 +265,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     ]);
 
     const aggregate = await AggregateModel.findById(params.aggregate.id, { final: 1, version: 1 }, {
-      readPreference: this.opts?.readPreference ?? 'primaryPreferred',
+      readPreference: this.opts?.readPreference,
     });
 
     if (aggregate?.final) {
@@ -420,7 +419,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     }
 
     const cursor = EventModel.find(query, null, {
-      readPreference: this.opts?.readPreference ?? 'primaryPreferred',
+      readPreference: this.opts?.readPreference,
     }).sort({ 'aggregate.id': 1, 'aggregate.version': 1 }).cursor({
       batchSize: 256,
     });
@@ -477,7 +476,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gt: params.aggregate.version },
     }, null, {
-      readPreference: this.opts.readPreference ?? 'primaryPreferred',
+      readPreference: this.opts.readPreference,
     }).sort({
       'aggregate.version': -1,
     });
