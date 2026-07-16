@@ -12,6 +12,7 @@ import { match, P } from 'ts-pattern';
 type Options = {
   readonly uri: string;
   readonly serializers: Serializer<unknown, unknown>[];
+  readonly readPreference?: 'primary' | 'secondaryPreferred';
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
 export type MongoStoreAdapterOptions = Partial<Options>;
@@ -58,6 +59,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
       serializers: opts?.serializers ?? [],
+      readPreference: opts?.readPreference ?? 'primary',
     };
 
     this.joser = new Joser({
@@ -154,7 +156,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
   async checkProjectionCheckpoint(params: { projection: string; aggregate: { id: Buffer; version: number; }; }): Promise<boolean> {
     const ProjectionCheckpointModel = <Model<{ aggregate: { version: number } }>>(await this.model('ProjectionCheckpoint'));
-    
+
     const result = await ProjectionCheckpointModel.findOne({
       projection: params.projection,
       'aggregate.id': params.aggregate.id,
@@ -230,7 +232,7 @@ export class MongoStoreAdapter implements StoreAdapter {
         jitter: 'full',
         retry: (err) => {
           const retry = RetrieableMongoErrorCodes.has(err.codeName);
-          
+
           if (retry) {
             this.logger.warn('retry #finalizeAggregate: code=%s', err.codeName);
           } else {
@@ -252,7 +254,6 @@ export class MongoStoreAdapter implements StoreAdapter {
     retryStartingDelay?: number;
     retryMaxDelay?: number;
     retryMaxAttempts?: number;
-    readPreference?: 'primary' |'secondaryPreferred';
     writeConcern?: 'majority' | 'primary' | 2 | 3
   }): Promise<void> {
     assert(params.aggregate.version > 0, 'aggregate version must be greater than 0');
@@ -265,7 +266,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     ]);
 
     const aggregate = await AggregateModel.findById(params.aggregate.id, { final: 1, version: 1 }, {
-      readPreference: opts?.readPreference ?? 'secondaryPreferred',
+      readPreference: this.opts?.readPreference ?? 'secondaryPreferred',
     });
 
     if (aggregate?.final) {
@@ -357,7 +358,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       jitter: 'full',
       retry: (err) => {
         const retry = RetrieableMongoErrorCodes.has(err.codeName);
-        
+
         if (retry) {
           this.logger.warn('retry #saveEvents: code=%s', err.codeName);
         } else {
@@ -374,15 +375,11 @@ export class MongoStoreAdapter implements StoreAdapter {
       id: Buffer;
       version?: number;
     };
-  }, opts?: {
-    readPreference?: 'primary' |'secondaryPreferred';
   }): Promise<AsyncIterableIterator<TEvent>>;
 
   async listEvents<TEvent = Event>(params: {
     type: number;
-  }, opts?: {
-    readPreference?: 'primary' |'secondaryPreferred';
-  }): Promise<AsyncIterableIterator<TEvent>> 
+  }): Promise<AsyncIterableIterator<TEvent>>
 
   async listEvents<TEvent = Event>(params: {
     aggregate?: {
@@ -390,11 +387,9 @@ export class MongoStoreAdapter implements StoreAdapter {
       version?: number;
     };
     type?: number;
-  }, opts?: {
-    readPreference?: 'primary' |'secondaryPreferred';
   }): Promise<AsyncIterableIterator<TEvent>> {
     const _this = this;
-    
+
     const EventModel = await this.model('Event');
 
     let query = {};
@@ -412,7 +407,7 @@ export class MongoStoreAdapter implements StoreAdapter {
         'aggregate.version': 1,
       };
     }
-    
+
     if (typeof params.type === 'number') {
       query = {
         'type': params.type,
@@ -425,11 +420,11 @@ export class MongoStoreAdapter implements StoreAdapter {
     }
 
     const cursor = EventModel.find(query, null, {
-      readPreference: opts?.readPreference ?? 'secondaryPreferred',
+      readPreference: this.opts?.readPreference ?? 'secondaryPreferred',
     }).sort({ 'aggregate.id': 1, 'aggregate.version': 1 }).cursor({
       batchSize: 256,
     });
-    
+
     return {
       async next() {
         const doc = await cursor.next();
@@ -482,11 +477,11 @@ export class MongoStoreAdapter implements StoreAdapter {
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gt: params.aggregate.version },
     }, null, {
-      readPreference: 'secondaryPreferred',
+      readPreference: this.opts.readPreference ?? 'secondaryPreferred',
     }).sort({
       'aggregate.version': -1,
     });
-    
+
     if (!snapshot) {
       return null;
     }

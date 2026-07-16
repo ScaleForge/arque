@@ -157,7 +157,7 @@ export class Aggregate<
       aggregate: {
         id: this.id,
         version: this.version,
-      },
+      }
     });
 
     await this.digest(events);
@@ -293,7 +293,7 @@ export class Aggregate<
 
             return true;
           }
-          
+
           return false;
         },
       });
