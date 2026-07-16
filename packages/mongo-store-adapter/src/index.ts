@@ -12,7 +12,7 @@ import { match, P } from 'ts-pattern';
 type Options = {
   readonly uri: string;
   readonly serializers: Serializer<unknown, unknown>[];
-  readonly readPreference?: 'primary' | 'secondaryPreferred';
+  readonly readPreference?: 'primary' | 'primaryPreferred' | 'secondaryPreferred';
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
 export type MongoStoreAdapterOptions = Partial<Options>;
@@ -266,7 +266,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     ]);
 
     const aggregate = await AggregateModel.findById(params.aggregate.id, { final: 1, version: 1 }, {
-      readPreference: this.opts?.readPreference ?? 'secondaryPreferred',
+      readPreference: this.opts?.readPreference ?? 'primaryPreferred',
     });
 
     if (aggregate?.final) {
@@ -420,7 +420,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     }
 
     const cursor = EventModel.find(query, null, {
-      readPreference: this.opts?.readPreference ?? 'secondaryPreferred',
+      readPreference: this.opts?.readPreference ?? 'primaryPreferred',
     }).sort({ 'aggregate.id': 1, 'aggregate.version': 1 }).cursor({
       batchSize: 256,
     });
@@ -477,7 +477,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gt: params.aggregate.version },
     }, null, {
-      readPreference: this.opts.readPreference ?? 'secondaryPreferred',
+      readPreference: this.opts.readPreference ?? 'primaryPreferred',
     }).sort({
       'aggregate.version': -1,
     });
