@@ -12,7 +12,6 @@ import { match, P } from 'ts-pattern';
 type Options = {
   readonly uri: string;
   readonly serializers: Serializer<unknown, unknown>[];
-  readonly readPreference?: 'primary' | 'primaryPreferred' | 'secondaryPreferred';
 } & Readonly<Pick<ConnectOptions, 'maxPoolSize' | 'minPoolSize' | 'socketTimeoutMS' | 'serverSelectionTimeoutMS'>>;
 
 export type MongoStoreAdapterOptions = Partial<Options>;
@@ -59,7 +58,6 @@ export class MongoStoreAdapter implements StoreAdapter {
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
       serializers: opts?.serializers ?? [],
-      readPreference: opts?.readPreference ?? 'primary',
     };
 
     this.joser = new Joser({
@@ -265,7 +263,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     ]);
 
     const aggregate = await AggregateModel.findById(params.aggregate.id, { final: 1, version: 1 }, {
-      readPreference: this.opts?.readPreference,
+      readPreference: 'primary',
     });
 
     if (aggregate?.final) {
@@ -387,23 +385,17 @@ export class MongoStoreAdapter implements StoreAdapter {
     };
     type?: number;
   }): Promise<AsyncIterableIterator<TEvent>> {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
 
     const EventModel = await this.model('Event');
 
     let query = {};
 
-    let sort = {};
-
     if (params.aggregate) {
       query = {
         'aggregate.id': params.aggregate.id,
         'aggregate.version': { $gt: params.aggregate.version ?? 0 },
-      };
-
-      sort = {
-        'aggregate.id': 1,
-        'aggregate.version': 1,
       };
     }
 
@@ -411,15 +403,10 @@ export class MongoStoreAdapter implements StoreAdapter {
       query = {
         'type': params.type,
       };
-
-      sort = {
-        'type': 1,
-        'timestamp': 1,
-      };
     }
 
     const cursor = EventModel.find(query, null, {
-      readPreference: this.opts?.readPreference,
+      readPreference: 'primary',
     }).sort({ 'aggregate.id': 1, 'aggregate.version': 1 }).cursor({
       batchSize: 256,
     });
@@ -476,7 +463,7 @@ export class MongoStoreAdapter implements StoreAdapter {
       'aggregate.id': params.aggregate.id,
       'aggregate.version': { $gt: params.aggregate.version },
     }, null, {
-      readPreference: this.opts.readPreference,
+      readPreference: 'secondaryPreferred',
     }).sort({
       'aggregate.version': -1,
     });
