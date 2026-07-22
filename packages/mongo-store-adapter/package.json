@@ -1,6 +1,6 @@
 {
   "name": "@arque/mongo-store-adapter",
-  "version": "0.13.4",
+  "version": "0.13.5",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
   "license": "MIT",
