@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/** eslint-disable @typescript-eslint/no-explicit-any */
 import { LRUCache } from 'lru-cache';
 import { Aggregate, AggregateOptions } from './aggregate';
 import { StoreAdapter } from './adapters/store-adapter';
@@ -12,6 +12,7 @@ type Options<T> = {
   readonly defaultState: ExtractState<T> | (() => ExtractState<T>);
   readonly cacheMax: number;
   readonly cacheTTL: number;
+  readonly readPreference: 'primary' | 'secondary';
 } & Partial<AggregateOptions<ExtractState<T>>>;
 
 export class AggregateFactory<T extends Aggregate> {
@@ -32,6 +33,7 @@ export class AggregateFactory<T extends Aggregate> {
    * @param opts.cacheTTL - The time-to-live of the cache in milliseconds. default: `172800000` (48 hours)
    * @param opts.shouldTakeSnapshot - A function that determines if a snapshot should be taken. default: `undefined`
    * @param opts.snapshotInterval - The interval at which snapshots should be taken. default: `20`
+   * @param opts.readPreference - The read preference for the aggregate. default: `secondary`
    */
   constructor(
     private readonly store: StoreAdapter,
@@ -47,6 +49,7 @@ export class AggregateFactory<T extends Aggregate> {
       cacheMax: opts?.cacheMax ?? 2_046,
       cacheTTL: opts?.cacheTTL ?? 14_400_000,
       snapshotInterval: opts?.snapshotInterval ?? 20,
+      readPreference: opts?.readPreference ?? 'secondary',
     };
 
     this.cache = new LRUCache({
@@ -86,6 +89,7 @@ export class AggregateFactory<T extends Aggregate> {
             snapshotInterval: this.opts.snapshotInterval,
             serializeState: this.opts.serializeState,
             deserializeState: this.opts.deserializeState,
+            readPreference: this.opts.readPreference,
           },
         ) as never as T;
 

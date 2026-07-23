@@ -41,10 +41,14 @@ export interface StoreAdapter {
       id: Buffer;
       version?: number;
     };
+  }, opts?: {
+    readPreference?: 'primary' | 'secondary';
   }): Promise<AsyncIterableIterator<TEvent>>;
 
   listEvents<TEvent = Event>(params: {
     type: number;
+  }, opts?: {
+    readPreference?: 'primary' | 'secondary';
   }): Promise<AsyncIterableIterator<TEvent>>;
 
   saveSnapshot(params: Snapshot): Promise<void>;

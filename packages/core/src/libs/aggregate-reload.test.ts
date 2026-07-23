@@ -67,6 +67,8 @@ describe('Aggregate#reload', () => {
         id,
         version: 0,
       },
+    }, {
+      readPreference: 'secondary',
     });
     expect(store.findLatestSnapshot).toHaveBeenCalledWith({
       aggregate: {
@@ -126,6 +128,8 @@ describe('Aggregate#reload', () => {
         id,
         version: 5,
       },
+    }, {
+      readPreference: 'secondary',
     });
     expect(store.findLatestSnapshot).toHaveBeenCalledWith({
       aggregate: {

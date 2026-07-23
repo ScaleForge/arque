@@ -21,6 +21,7 @@ export type AggregateOptions<TState> = {
   readonly snapshotInterval?: number;
   readonly serializeState: (state: TState) => unknown;
   readonly deserializeState: (state: unknown) => TState;
+  readonly readPreference?: 'primary' | 'secondary';
 };
 
 export class Aggregate<
@@ -158,6 +159,8 @@ export class Aggregate<
         id: this.id,
         version: this.version,
       }
+    }, {
+      readPreference: this.opts.readPreference ?? 'secondary',
     });
 
     await this.digest(events);

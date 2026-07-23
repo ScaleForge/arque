@@ -384,6 +384,8 @@ export class MongoStoreAdapter implements StoreAdapter {
       version?: number;
     };
     type?: number;
+  }, opts?: {
+    readPreference?: 'primary' | 'secondary';
   }): Promise<AsyncIterableIterator<TEvent>> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
@@ -406,7 +408,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     }
 
     const cursor = EventModel.find(query, null, {
-      readPreference: 'primary',
+      readPreference: opts?.readPreference === 'secondary' ? 'secondaryPreferred' : 'primary',
     }).sort({ 'aggregate.id': 1, 'aggregate.version': 1 }).cursor({
       batchSize: 64,
     });

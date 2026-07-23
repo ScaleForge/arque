@@ -81,7 +81,7 @@ describe('Aggregate#process', () => {
       type: CommandType.UpdateBalance,
       args: [{ amount: 10 }],
     });
-    
+
     expect(aggregate.state).toEqual({ balance: 10 });
     expect(aggregate.version).toEqual(1);
     expect(store.listEvents).toHaveBeenCalledWith({
@@ -89,6 +89,8 @@ describe('Aggregate#process', () => {
         id,
         version: 0,
       },
+    }, {
+      readPreference: 'secondary',
     });
     expect(store.findLatestSnapshot).toHaveBeenCalledWith({
       aggregate: {
@@ -135,7 +137,7 @@ describe('Aggregate#process', () => {
       type: CommandType.UpdateBalance,
       args: [{ amount: -10 }],
     })).rejects.toThrow('insufficient balance');
-    
+
     expect(aggregate.state).toEqual({ balance: 0 });
     expect(aggregate.version).toEqual(0);
     expect(store.listEvents).toHaveBeenCalledWith({
@@ -143,6 +145,8 @@ describe('Aggregate#process', () => {
         id,
         version: 0,
       },
+    }, {
+      readPreference: 'secondary',
     });
     expect(store.findLatestSnapshot).toHaveBeenCalledWith({
       aggregate: {
@@ -183,7 +187,7 @@ describe('Aggregate#process', () => {
         args: [{ amount }],
       });
     }
-    
+
     expect(aggregate.state).toEqual({ balance: R.sum(values) });
     expect(aggregate.version).toEqual(values.length);
     expect(store.listEvents).toHaveBeenCalledTimes(values.length);
@@ -276,7 +280,7 @@ describe('Aggregate#process', () => {
         args: [{ amount: index % 2 === 0 ? 10 : -5 }],
       });
     }
-    
+
     expect(aggregate.state).toEqual({ balance: 10 * Math.ceil(count / 2) - 5 * Math.floor(count / 2) });
     expect(aggregate.version).toEqual(count);
     expect(store.listEvents).toHaveBeenCalledTimes(count);
