@@ -8,7 +8,7 @@
   "license": "MIT",
   "devDependencies": {
     "@faker-js/faker": "9.8.0",
-    "@nx/jest": "22.2.3",
+    "@nx/jest": "22.7.7",
     "@types/jest": "30.0.0",
     "@types/node": "22.15.30",
     "@types/ramda": "0.30.2",
@@ -19,13 +19,24 @@
     "jest": "30.2.0",
     "lerna": "9.0.7",
     "mongodb-memory-server": "10.4.2",
-    "nx": "22.2.3",
+    "nx": "22.7.7",
     "ramda": "^0.30.1",
     "rimraf": "6.1.2",
     "ts-jest": "29.4.6",
     "ts-node": "10.9.2",
     "tslib": "2.8.1",
     "typescript": "5.9.3"
+  },
+  "overrides": {
+    "tar": "7.5.21",
+    "nx": {
+      "axios": "1.18.0",
+      "brace-expansion": "5.0.7"
+    },
+    "lerna": {
+      "@nx/devkit": "22.7.7",
+      "js-yaml": "4.3.0"
+    }
   },
   "workspaces": [
     "packages/core",
