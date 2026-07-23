@@ -23,10 +23,10 @@ export class AggregateFactory<T extends Aggregate> {
   private readonly opts: Options<T>;
 
   /**
-   * @param store 
-   * @param stream 
-   * @param commandHandlers 
-   * @param eventHandlers 
+   * @param store
+   * @param stream
+   * @param commandHandlers
+   * @param eventHandlers
    * @param opts.defaultState - The default state of the aggregate. default: `null`
    * @param opts.cacheMax - The maximum number of aggregates to cache. default: `2046`
    * @param opts.cacheTTL - The time-to-live of the cache in milliseconds. default: `172800000` (48 hours)
@@ -43,9 +43,9 @@ export class AggregateFactory<T extends Aggregate> {
     this.opts = {
       ...opts,
       defaultState: opts?.defaultState ?? null,
-      cacheMax: opts?.cacheMax ?? 2046,
-      cacheTTL: opts?.cacheTTL ?? 172800000,
       shouldTakeSnapshot: opts?.shouldTakeSnapshot,
+      cacheMax: opts?.cacheMax ?? 2_046,
+      cacheTTL: opts?.cacheTTL ?? 14_400_000,
       snapshotInterval: opts?.snapshotInterval ?? 20,
     };
 

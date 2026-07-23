@@ -1,7 +1,6 @@
 import { ConfigAdapter } from '@arque/core';
 import mongoose, { Connection, ConnectOptions } from 'mongoose';
 import * as schema from './libs/schema';
-import debug from 'debug';
 import { LRUCache } from 'lru-cache';
 
 type Options = {
@@ -99,7 +98,7 @@ export class MongoConfigAdapter implements ConfigAdapter {
       upsert: true,
     });
   }
-  
+
   async findStreams(event: number): Promise<string[]> {
     let streams = this.cache.get(event);
 

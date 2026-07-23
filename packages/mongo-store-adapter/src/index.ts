@@ -77,13 +77,13 @@ export class MongoStoreAdapter implements StoreAdapter {
     });
   }
 
-  private serialize(value) {
+  private serialize(value: Record<string, unknown>) {
     return match(value)
       .with(P.union(P.nullish, P.number, P.string, P.boolean, P.instanceOf(Buffer)), (value) => value)
       .otherwise((value) => this.joser.serialize(value));
   }
 
-  private deserialize(value) {
+  private deserialize(value: Record<string, unknown>) {
     return match(value)
       .with(P.union(P.nullish, P.number, P.string, P.boolean, P.instanceOf(Buffer)), (value) => value)
       .otherwise((value) => this.joser.deserialize(value));
@@ -125,7 +125,7 @@ export class MongoStoreAdapter implements StoreAdapter {
   }
 
   public async model(model: keyof typeof schema) {
-    const connection = await this.connection();;
+    const connection = await this.connection();
 
     return connection.model(model, schema[model]);
   }
@@ -408,7 +408,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     const cursor = EventModel.find(query, null, {
       readPreference: 'primary',
     }).sort({ 'aggregate.id': 1, 'aggregate.version': 1 }).cursor({
-      batchSize: 256,
+      batchSize: 64,
     });
 
     return {
