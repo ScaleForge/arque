@@ -1,6 +1,6 @@
 # Toolchain
 
-- Runtime pin: Node.js `v20.18.0` from `.nvmrc`.
+- Runtime pin: Node.js `v26.7.0` from `.nvmrc`.
 - Language: TypeScript; root `tsconfig.json` targets ES2017, uses CommonJS, Node module resolution, declarations, source maps, and strict library skipping.
 - Package management: npm workspaces plus Lerna `9.0.7`; workspace packages are core, Kafka stream adapter, Mongo config adapter, and Mongo store adapter.
 - Testing: Jest `30.2.0`, ts-jest `29.4.6`, Nx Jest preset integration.
