@@ -1,6 +1,19 @@
 import { Schema } from 'mongoose';
 
-const Event = new Schema({
+export type EventDocument = {
+  _id: Buffer;
+  type: number;
+  aggregate: {
+    id: Buffer;
+    version: number;
+  };
+  body: Record<string, unknown>;
+  meta: Record<string, unknown>;
+  timestamp: Date;
+  final: boolean;
+};
+
+const EventSchema = new Schema<EventDocument>({
   _id: Buffer,
   type: Number,
   aggregate: {
@@ -14,11 +27,18 @@ const Event = new Schema({
 }, {
   id: false,
 });
-Event.index({ 'aggregate.id': 'hashed' });
-Event.index({ 'aggregate.id': 1, 'aggregate.version': 1 });
-Event.index({ 'type': 1, 'timestamp': 1 });
+EventSchema.index({ 'aggregate.id': 'hashed' });
+EventSchema.index({ 'aggregate.id': 1, 'aggregate.version': 1 });
+EventSchema.index({ 'type': 1, 'timestamp': 1 });
 
-const Aggregate = new Schema({
+export type AggregateDocument = {
+  _id: Buffer;
+  version: number;
+  timestamp: Date;
+  final?: boolean;
+};
+
+const AggregateSchema = new Schema<AggregateDocument>({
   _id: Buffer,
   version: Number,
   timestamp: Date,
@@ -26,9 +46,18 @@ const Aggregate = new Schema({
 }, {
   id: false,
 });
-Aggregate.index({ '_id': 'hashed' });
+AggregateSchema.index({ '_id': 'hashed' });
 
-const Snapshot = new Schema({
+export type SnapshotDocument = {
+  aggregate: {
+    id: Buffer;
+    version: number;
+  };
+  state: Record<string, unknown>;
+  timestamp: Date;
+};
+
+const SnapshotSchema = new Schema<SnapshotDocument>({
   aggregate: {
     id: Buffer,
     version: Number,
@@ -38,10 +67,19 @@ const Snapshot = new Schema({
 }, {
   id: false,
 });
-Snapshot.index({ 'aggregate.id': 'hashed' });
-Snapshot.index({ 'aggregate.id': 1, 'aggregate.version': 1 });
+SnapshotSchema.index({ 'aggregate.id': 'hashed' });
+SnapshotSchema.index({ 'aggregate.id': 1, 'aggregate.version': 1 });
 
-const ProjectionCheckpoint = new Schema({
+export type ProjectionCheckpointDocument = {
+  projection: string;
+  aggregate: {
+    id: Buffer;
+    version: number;
+  };
+  timestamp: Date;
+};
+
+const ProjectionCheckpointSchema = new Schema<ProjectionCheckpointDocument>({
   projection: String,
   aggregate: {
     id: Buffer,
@@ -51,7 +89,23 @@ const ProjectionCheckpoint = new Schema({
 }, {
   id: false,
 });
-ProjectionCheckpoint.index({ 'projection': 1, 'aggregate.id': 'hashed' });
-ProjectionCheckpoint.index({ 'timestamp': 1 }, { expireAfterSeconds: 60 * 60 * 24 * 7 });
+ProjectionCheckpointSchema.index({ 'projection': 1, 'aggregate.id': 'hashed' });
+ProjectionCheckpointSchema.index({ 'timestamp': 1 }, { expireAfterSeconds: 60 * 60 * 24 * 7 });
 
-export { Event, Aggregate, Snapshot, ProjectionCheckpoint };
+export type LockDocument = {
+  _id: Buffer;
+  owner: Buffer;
+  timestamp: Date;
+};
+
+const LockSchema = new Schema<LockDocument>({
+  _id: Buffer,
+  owner: Buffer,
+  timestamp: Date,
+}, {
+  id: false,
+  collection: 'locks',
+});
+LockSchema.index({ 'timestamp': 1 }, { expireAfterSeconds: 30 });
+
+export { EventSchema, AggregateSchema, SnapshotSchema, ProjectionCheckpointSchema, LockSchema };

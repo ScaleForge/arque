@@ -1,13 +1,26 @@
 /** build x2 */
 import { Event, StoreAdapter, Snapshot, AggregateVersionConflictError, EventId, AggregateIsFinalError } from '@arque/core';
 import mongoose, { Connection, ConnectOptions, Model } from 'mongoose';
-import * as schema from './libs/schema';
+import {
+  AggregateSchema,
+  EventSchema,
+  ProjectionCheckpointSchema,
+  SnapshotSchema,
+} from './libs/schema';
 import { backOff } from 'exponential-backoff';
 import { Joser, Serializer } from '@scaleforge/joser';
 import debug from 'debug';
 import assert from 'assert';
 import Queue from 'p-queue';
 import { match, P } from 'ts-pattern';
+import { Lock } from './libs/lock';
+
+const schema = {
+  Event: EventSchema,
+  Aggregate: AggregateSchema,
+  Snapshot: SnapshotSchema,
+  ProjectionCheckpoint: ProjectionCheckpointSchema,
+};
 
 type Options = {
   readonly uri: string;
@@ -41,7 +54,6 @@ export class MongoStoreAdapter implements StoreAdapter {
 
   private readonly saveSnapshotQueue = new Queue({
     autoStart: true,
-    concurrency: 1,
   });
 
   private _connection: Promise<Connection>;
@@ -124,7 +136,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     return this._connection;
   }
 
-  public async model(model: keyof typeof schema) {
+  public async model<TModelName extends keyof typeof schema>(model: TModelName) {
     const connection = await this.connection();
 
     return connection.model(model, schema[model]);
@@ -153,7 +165,7 @@ export class MongoStoreAdapter implements StoreAdapter {
   }
 
   async checkProjectionCheckpoint(params: { projection: string; aggregate: { id: Buffer; version: number; }; }): Promise<boolean> {
-    const ProjectionCheckpointModel = <Model<{ aggregate: { version: number } }>>(await this.model('ProjectionCheckpoint'));
+    const ProjectionCheckpointModel = <Model<{ aggregate: { version: number } }>>(<unknown>await this.model('ProjectionCheckpoint'));
 
     const result = await ProjectionCheckpointModel.findOne({
       projection: params.projection,
@@ -258,7 +270,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     const connection = await this.connection();
 
     const [AggregateModel, EventModel] = await Promise.all([
-      <Promise<Model<{ final?: true, version: number }>>>this.model('Aggregate'),
+      <Promise<Model<{ final?: true, version: number }>>><unknown>this.model('Aggregate'),
       this.model('Event'),
     ]);
 
@@ -443,15 +455,40 @@ export class MongoStoreAdapter implements StoreAdapter {
   }
 
   async _saveSnapshot(params: Snapshot) {
+    const connection = await this.connection();
     const SnapshotModel = await this.model('Snapshot');
+    const lock = await Lock.acquire(connection, params.aggregate.id);
+    let succeeded = false;
 
-    await SnapshotModel.create([{
-      ...params,
-      state: this.serialize(<never>params.state),
-    }], {
-      validateBeforeSave: false,
-      w: 1,
-    });
+    try {
+      await SnapshotModel.create([{
+        ...params,
+        state: this.serialize(<never>params.state),
+      }], {
+        validateBeforeSave: false,
+        w: 1,
+      });
+
+      if (params.aggregate.version > 2) {
+        await SnapshotModel.deleteMany({
+          'aggregate.id': params.aggregate.id,
+          'aggregate.version': { $lt: params.aggregate.version - 1 },
+        }, {
+          w: 1,
+          readPreference: 'primary'
+        });
+      }
+
+      succeeded = true;
+    } finally {
+      try {
+        await lock.release();
+      } catch (error) {
+        if (succeeded) {
+          throw error;
+        }
+      }
+    }
   }
 
   async saveSnapshot(params: Snapshot) {
