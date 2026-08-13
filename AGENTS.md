@@ -71,9 +71,11 @@ Before presenting or executing a final plan for a non-trivial task:
 - Stop when the reviewer returns `APPROVED` or after the tenth review round, whichever comes first.
 - If the tenth round is reached without approval, proceed only with the latest plan and explicitly report unresolved reviewer feedback.
 
-## 6. Use Serena for Code Work
+## 6. Prefer Serena for Code Work
 
-- Use Serena to explore the codebase before making implementation decisions.
-- Use Serena to read relevant files and symbols, preferring targeted reads over unnecessary full-file reads.
+- Serena is the default tool for code work. Start with Serena for exploration, symbol lookup, references, targeted reads, and supported edits.
+- Do not start source-code searches with Glob or Grep. Use Serena's symbol and pattern tools first, including `get_symbols_overview`, `find_symbol`, `search_for_pattern`, and `find_referencing_symbols`.
 - Use Serena's symbol-aware and content-editing tools to modify source files whenever they support the requested change.
+- Use Glob, Grep, Read, and Bash only when Serena cannot support the operation, when working with non-code files, or for verification such as tests, builds, and git status.
+- If Serena cannot identify a source file or symbol, use the narrowest fallback search needed, then return to Serena for inspection and editing.
 - Re-read or inspect the affected files after Serena edits and run relevant verification commands.
