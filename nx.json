@@ -15,6 +15,12 @@
         "{projectRoot}/dist"
       ]
     },
+    "typecheck": {
+      "cache": true,
+      "dependsOn": [
+        "^build"
+      ]
+    },
     "prepublishOnly": {
       "cache": true,
       "dependsOn": [

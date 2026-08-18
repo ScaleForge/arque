@@ -18,6 +18,7 @@
   "scripts": {
     "test": "jest",
     "build": "rimraf dist && tsc --project tsconfig.build.json",
+    "typecheck": "tsc --project tsconfig.build.json --noEmit",
     "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {

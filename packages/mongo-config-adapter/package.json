@@ -17,6 +17,7 @@
   },
   "scripts": {
     "build": "rimraf dist && tsc --project tsconfig.build.json",
+    "typecheck": "tsc --project tsconfig.build.json --noEmit",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

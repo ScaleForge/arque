@@ -3,7 +3,8 @@
   "description": "The Event Sourcing library.",
   "scripts": {
     "test": "lerna run test",
-    "build": "lerna run build"
+    "build": "lerna run build",
+    "typecheck": "lerna run typecheck"
   },
   "license": "MIT",
   "devDependencies": {
@@ -28,7 +29,8 @@
     "ts-jest": "29.4.12",
     "ts-node": "10.9.2",
     "tslib": "2.8.1",
-    "typescript": "5.9.3"
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "@typescript/native": "npm:typescript@7.0.2"
   },
   "overrides": {
     "tar": "7.5.21",
