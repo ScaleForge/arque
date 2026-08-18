@@ -136,7 +136,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     return this._connection;
   }
 
-  public async model<TModelName extends keyof typeof schema>(model: TModelName) {
+  public async model<TName extends keyof typeof schema>(model: TName) {
     const connection = await this.connection();
 
     return connection.model(model, schema[model]);
@@ -457,8 +457,8 @@ export class MongoStoreAdapter implements StoreAdapter {
   async _saveSnapshot(params: Snapshot) {
     const connection = await this.connection();
     const SnapshotModel = await this.model('Snapshot');
+
     const lock = await Lock.acquire(connection, params.aggregate.id);
-    let succeeded = false;
 
     try {
       await SnapshotModel.create([{
@@ -478,16 +478,8 @@ export class MongoStoreAdapter implements StoreAdapter {
           readPreference: 'primary'
         });
       }
-
-      succeeded = true;
     } finally {
-      try {
-        await lock.release();
-      } catch (error) {
-        if (succeeded) {
-          throw error;
-        }
-      }
+      await lock.release();
     }
   }
 
