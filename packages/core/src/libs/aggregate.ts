@@ -286,10 +286,10 @@ export class Aggregate<
         }, ctx);
       }, {
         jitter: 'full',
-        maxDelay: 450,
-        numOfAttempts: opts?.maxRetries ?? 20,
-        startingDelay: 50,
-        timeMultiple: 1.5,
+        maxDelay: 512,
+        numOfAttempts: opts?.maxRetries ?? 24,
+        startingDelay: 32,
+        timeMultiple: 2,
         retry: (err) => {
           if (err instanceof AggregateVersionConflictError) {
             this.logger.warn(`retrying: error="${err.message}"`);

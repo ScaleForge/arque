@@ -65,7 +65,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 Before presenting or executing a final plan for a non-trivial task:
 
-- Submit the user request, assumptions, gathered context, success criteria, and proposed plan to the `review` subagent.
+- Submit the user request, assumptions, gathered context, success criteria, and proposed plan to the `plan-review` subagent.
 - Treat the subagent as read-only plan review: it must not implement changes, edit files, or run commands.
 - Apply actionable feedback to the plan, then resubmit the revised plan for another review round.
 - Stop when the reviewer returns `APPROVED` or after the tenth review round, whichever comes first.
@@ -73,9 +73,9 @@ Before presenting or executing a final plan for a non-trivial task:
 
 ## 6. Prefer Serena for Code Work
 
-- Serena is the default tool for code work. Start with Serena for exploration, symbol lookup, references, targeted reads, and supported edits.
-- Do not start source-code searches with Glob or Grep. Use Serena's symbol and pattern tools first, including `get_symbols_overview`, `find_symbol`, `search_for_pattern`, and `find_referencing_symbols`.
+- Serena must be the first tool used for source-code discovery, search, symbol lookup, references, targeted reads, and supported edits.
+- Do not use Glob or Grep as an initial source-code search or merely for convenience. Start with Serena's symbol and pattern tools, including `get_symbols_overview`, `find_symbol`, `search_for_pattern`, and `find_referencing_symbols`.
 - Use Serena's symbol-aware and content-editing tools to modify source files whenever they support the requested change.
-- Use Glob, Grep, Read, and Bash only when Serena cannot support the operation, when working with non-code files, or for verification such as tests, builds, and git status.
-- If Serena cannot identify a source file or symbol, use the narrowest fallback search needed, then return to Serena for inspection and editing.
+- Use Glob or Grep only for non-code files, verification, or when Serena cannot identify or support the target; use the narrowest fallback search in that case.
+- After any fallback discovery, return to Serena for source inspection and editing.
 - Re-read or inspect the affected files after Serena edits and run relevant verification commands.
