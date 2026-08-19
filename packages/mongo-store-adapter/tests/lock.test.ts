@@ -11,6 +11,7 @@ describe('Lock', () => {
     const otherKey = randomBytes(13);
 
     const lock = await Lock.acquire(connection, key);
+    const findOne = jest.spyOn(connection.models.Lock, 'findOne');
     const waiting = Lock.acquire(connection, key);
     const different = await Lock.acquire(connection, otherKey);
 
@@ -18,6 +19,7 @@ describe('Lock', () => {
       waiting.then(() => true),
       wait(250).then(() => false),
     ])).resolves.toBe(false);
+    expect(findOne).not.toHaveBeenCalled();
 
     await different.release();
     await lock.release();
