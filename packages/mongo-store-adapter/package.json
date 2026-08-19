@@ -1,6 +1,6 @@
 {
   "name": "@arque/mongo-store-adapter",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "author": "ScaleForge",
   "homepage": "https://github.com/ScaleForge/arque#README.md",
   "license": "MIT",
@@ -23,7 +23,7 @@
     "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
-    "@arque/core": "^0.14.0",
+    "@arque/core": "^0.14.1",
     "@scaleforge/joser": "0.8.8",
     "debug": "4.4.3",
     "exponential-backoff": "3.1.3",
