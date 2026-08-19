@@ -16,7 +16,7 @@
     "url": "https://github.com/ScaleForge/arque/issues"
   },
   "scripts": {
-    "build": "rimraf dist && tsc --project tsconfig.build.json",
+    "build": "rimraf dist && tsc --project tsconfig.build.json --emitDeclarationOnly && swc src --out-dir dist --config-file ../../.swcrc --strip-leading-paths",
     "typecheck": "tsc --project tsconfig.build.json --noEmit",
     "prepublishOnly": "npm run typecheck && npm run build"
   },

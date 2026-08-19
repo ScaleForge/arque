@@ -37,7 +37,9 @@
       "{projectRoot}/**/*",
       "sharedGlobals"
     ],
-    "sharedGlobals": [],
+    "sharedGlobals": [
+      "{workspaceRoot}/.swcrc"
+    ],
     "production": [
       "default"
     ]
