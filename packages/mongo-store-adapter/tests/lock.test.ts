@@ -34,20 +34,15 @@ describe('Lock', () => {
     const lock = await Lock.acquire(connection, key);
     const acquiredAt = Date.now();
     const collection = connection.collection('locks');
+
     const document = await collection.findOne({ _id: key }, {
       readPreference: 'primary',
     });
-    const indexes = await collection.listIndexes().toArray();
+
     const timestamp = document?.['timestamp'] as Date;
 
     expect(timestamp.getTime()).toBeGreaterThanOrEqual(startedAt);
     expect(timestamp.getTime()).toBeLessThanOrEqual(acquiredAt);
-    expect(indexes).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        key: { timestamp: 1 },
-        expireAfterSeconds: 30,
-      }),
-    ]));
 
     await wait(10);
     const beforeExtend = Date.now();

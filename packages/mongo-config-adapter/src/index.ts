@@ -21,16 +21,16 @@ export class MongoConfigAdapter implements ConfigAdapter {
   private _init: Promise<void>;
 
   constructor(opts?: Partial<Options>) {
-    const maxPoolSize = opts?.maxPoolSize ?? 100;
+    const maxPoolSize = opts?.maxPoolSize ?? 40;
 
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
       maxPoolSize,
       minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
-      socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
-      serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
-      cacheMax: opts?.cacheMax ?? 2500,
-      cacheTTL: opts?.cacheTTL ?? 1000 * 60 * 60,
+      socketTimeoutMS: opts?.socketTimeoutMS ?? 45_000,
+      serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 30_000,
+      cacheMax: opts?.cacheMax ?? 2_500,
+      cacheTTL: opts?.cacheTTL ?? 1_000 * 60 * 60,
     };
 
     this.cache = new LRUCache({

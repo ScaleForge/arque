@@ -13,12 +13,6 @@ class LockHeldError extends Error {
   }
 }
 
-function isDuplicateKeyError(error: unknown) {
-  const err = error as { code?: number; codeName?: string };
-
-  return err.code === 11000 || err.codeName === 'DuplicateKey';
-}
-
 export class Lock {
   private active = true;
 
@@ -78,11 +72,10 @@ export class Lock {
   }
 
   static async acquire(connection: Connection, key: Buffer): Promise<Lock> {
-    const model = <Model<LockDocument>>(connection.models.Lock ?? connection.model<LockDocument>('Lock', LockSchema));
-
-    await model.init();
+    const model = <Model<LockDocument>>connection.models.Lock ?? connection.model<LockDocument>('Lock', LockSchema);
 
     const _id = Buffer.from(key);
+
     const owner = randomBytes(16);
 
     return backOff(async () => {
@@ -108,7 +101,11 @@ export class Lock {
       maxDelay: LOCK_POLL_MAX_DELAY_MS,
       numOfAttempts: 32,
       jitter: 'full',
-      retry: (error) => error instanceof LockHeldError || isDuplicateKeyError(error),
+      retry: (error) => {
+        const err = error as { code?: number; codeName?: string };
+
+        return error instanceof LockHeldError || err.code === 11000 || err.codeName === 'DuplicateKey';
+      },
     });
   }
 }

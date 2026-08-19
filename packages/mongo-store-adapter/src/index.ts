@@ -54,6 +54,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
   private readonly saveSnapshotQueue = new Queue({
     autoStart: true,
+    concurrency: 100,
   });
 
   private _connection: Promise<Connection>;
@@ -61,14 +62,14 @@ export class MongoStoreAdapter implements StoreAdapter {
   private _init: Promise<void>;
 
   constructor(opts?: Partial<Options>) {
-    const maxPoolSize = opts?.maxPoolSize ?? 100;
+    const maxPoolSize = opts?.maxPoolSize ?? 40;
 
     this.opts = {
       uri: opts?.uri ?? 'mongodb://localhost:27017/arque',
       maxPoolSize,
       minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
-      socketTimeoutMS: opts?.socketTimeoutMS ?? 45000,
-      serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 25000,
+      socketTimeoutMS: opts?.socketTimeoutMS ?? 45_000,
+      serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 30_000,
       serializers: opts?.serializers ?? [],
     };
 
@@ -263,7 +264,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     retryStartingDelay?: number;
     retryMaxDelay?: number;
     retryMaxAttempts?: number;
-    writeConcern?: 'majority' | 'primary' | 2 | 3
+    writeConcern?: 'majority' | 'primary'
   }): Promise<void> {
     assert(params.aggregate.version > 0, 'aggregate version must be greater than 0');
 
@@ -295,7 +296,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
       session.startTransaction({
         writeConcern: {
-          w: opts?.writeConcern === 'primary' ? 1 : opts?.writeConcern ?? 1,
+          w: opts?.writeConcern === 'primary' ? 1 : opts?.writeConcern ?? 'majority',
         },
       });
 
@@ -454,37 +455,35 @@ export class MongoStoreAdapter implements StoreAdapter {
     } as never;
   }
 
-  async _saveSnapshot(params: Snapshot) {
-    const connection = await this.connection();
-    const SnapshotModel = await this.model('Snapshot');
-
-    const lock = await Lock.acquire(connection, params.aggregate.id);
-
-    try {
-      await SnapshotModel.create([{
-        ...params,
-        state: this.serialize(<never>params.state),
-      }], {
-        validateBeforeSave: false,
-        w: 1,
-      });
-
-      if (params.aggregate.version > 2) {
-        await SnapshotModel.deleteMany({
-          'aggregate.id': params.aggregate.id,
-          'aggregate.version': { $lt: params.aggregate.version - 1 },
-        }, {
-          w: 1,
-          readPreference: 'primary',
-        });
-      }
-    } finally {
-      await lock.release();
-    }
-  }
-
   async saveSnapshot(params: Snapshot) {
-    await this.saveSnapshotQueue.add(() => this._saveSnapshot(params));
+    await this.saveSnapshotQueue.add(async () => {
+      const connection = await this.connection();
+      const SnapshotModel = await this.model('Snapshot');
+
+      const lock = await Lock.acquire(connection, params.aggregate.id);
+
+      try {
+        await SnapshotModel.create([{
+          ...params,
+          state: this.serialize(<never>params.state),
+        }], {
+          validateBeforeSave: false,
+          w: 1,
+        });
+
+        if (params.aggregate.version > 2) {
+          await SnapshotModel.deleteMany({
+            'aggregate.id': params.aggregate.id,
+            'aggregate.version': { $lt: params.aggregate.version - 1 },
+          }, {
+            w: 'majority',
+            readPreference: 'primary',
+          });
+        }
+      } finally {
+        await lock.release();
+      }
+    });
   }
 
   async findLatestSnapshot<T = unknown>(params: { aggregate: { id: Buffer; version: number; }; }): Promise<Snapshot<T> | null> {
