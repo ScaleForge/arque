@@ -27,14 +27,17 @@
   "lsp": true,
   "agent": {
     "build": {
-      "model": "openai/gpt-5.6-luna",
-      "variant": "high",
-      "temperature": 0.1
+      "model": "openai/gpt-5.6-sol",
+      "variant": "high"
     },
     "plan": {
       "model": "openai/gpt-5.6-terra",
       "variant": "high",
-      "temperature": 0.35
+      "temperature": 1.25
+    },
+    "explore": {
+      "model": "openai/gpt-5.6-luna",
+      "variant": "high"
     }
   }
 }

@@ -2,7 +2,7 @@
 description: Reviews the main agent's final plan and returns actionable feedback.
 mode: subagent
 model: openai/gpt-5.6-sol
-variant: max
+variant: xhigh
 permission:
   edit: deny
   bash: deny
