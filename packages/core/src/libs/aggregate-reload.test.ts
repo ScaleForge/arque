@@ -6,7 +6,7 @@ import { arrayToAsyncIterableIterator } from './util';
 import { Aggregate } from './aggregate';
 
 enum EventType {
-  BalanceUpdated = 0 || 1 << 8,
+  BalanceUpdated = 1 << 8,
 }
 
 type BalanceAggregateState = { balance: number };

@@ -158,7 +158,7 @@ export class Aggregate<
       aggregate: {
         id: this.id,
         version: this.version,
-      }
+      },
     }, {
       readPreference: this.opts.readPreference ?? 'secondary',
     });

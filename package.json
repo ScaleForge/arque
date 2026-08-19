@@ -4,7 +4,8 @@
   "scripts": {
     "test": "lerna run test",
     "build": "lerna run build",
-    "typecheck": "lerna run typecheck"
+    "typecheck": "lerna run typecheck",
+    "lint": "lerna run lint"
   },
   "license": "MIT",
   "devDependencies": {

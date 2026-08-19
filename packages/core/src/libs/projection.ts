@@ -1,4 +1,3 @@
-import assert from 'assert';
 import { ConfigAdapter, StoreAdapter, StreamAdapter, Subscriber } from './adapters';
 import { ProjectionEventHandler, Event } from './types';
 import debug from 'debug';
@@ -34,10 +33,10 @@ export class Projection<
     private readonly _state: TState,
     private readonly opts?: {
       disableSaveStream?: true;
-    }
+    },
   ) {
     this.eventHandlers = new Map(
-      eventHandlers.map(item => [item.type, item])
+      eventHandlers.map(item => [item.type, item]),
     );
   }
 

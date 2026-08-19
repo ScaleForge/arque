@@ -125,7 +125,7 @@ export class MongoStoreAdapter implements StoreAdapter {
           serverSelectionTimeoutMS: this.opts?.serverSelectionTimeoutMS,
         }).asPromise();
 
-        return connection
+        return connection;
       })().catch((err) => {
         delete this._connection;
 
@@ -159,7 +159,7 @@ export class MongoStoreAdapter implements StoreAdapter {
         upsert: true,
         writeConcern: {
           w: 1,
-        }
+        },
       },
     );
   }
@@ -299,7 +299,7 @@ export class MongoStoreAdapter implements StoreAdapter {
         },
       });
 
-      let _aggregate: { version: number } | null = null;
+      let _aggregate: { version: number } | null;
 
       try {
         await EventModel.insertMany(params.events.map((event, index) => ({
@@ -330,7 +330,7 @@ export class MongoStoreAdapter implements StoreAdapter {
           {
             session,
             upsert: true,
-          }
+          },
         );
       } catch (err) {
         await session.abortTransaction();
@@ -388,7 +388,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
   async listEvents<TEvent = Event>(params: {
     type: number;
-  }): Promise<AsyncIterableIterator<TEvent>>
+  }): Promise<AsyncIterableIterator<TEvent>>;
 
   async listEvents<TEvent = Event>(params: {
     aggregate?: {
@@ -475,7 +475,7 @@ export class MongoStoreAdapter implements StoreAdapter {
           'aggregate.version': { $lt: params.aggregate.version - 1 },
         }, {
           w: 1,
-          readPreference: 'primary'
+          readPreference: 'primary',
         });
       }
     } finally {

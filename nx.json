@@ -18,7 +18,13 @@
     "typecheck": {
       "cache": true,
       "dependsOn": [
-        "^build"
+        "^typecheck"
+      ]
+    },
+    "lint": {
+      "cache": true,
+      "dependsOn": [
+        "^lint"
       ]
     },
     "prepublishOnly": {

@@ -20,7 +20,8 @@
     "test": "jest",
     "build": "rimraf dist && tsc --project tsconfig.build.json --emitDeclarationOnly && swc src --out-dir dist --config-file ../../.swcrc --strip-leading-paths",
     "typecheck": "tsc --project tsconfig.build.json --noEmit",
-    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+    "lint": "eslint src",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
     "async-mutex": "0.5.0",

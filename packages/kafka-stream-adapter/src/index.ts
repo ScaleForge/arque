@@ -118,7 +118,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
           }, {
             breakLength: Infinity,
             compact: true,
-          })}"`
+          })}"`,
         );
 
         await backOff(async () => {
@@ -177,7 +177,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
             multiplier: 2,
           },
           createPartitioner: () => ({ partitionMetadata, message: { headers: { __ctx } } }) => 
-            murmurHash(new Uint8Array(<Buffer>__ctx)) % partitionMetadata.length
+            murmurHash(new Uint8Array(<Buffer>__ctx)) % partitionMetadata.length,
         });
     
         await producer.connect();
