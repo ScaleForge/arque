@@ -264,7 +264,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     retryStartingDelay?: number;
     retryMaxDelay?: number;
     retryMaxAttempts?: number;
-    writeConcern?: 'majority' | 'primary'
+    writeConcern?: 'majority' | 'primary' | 1 | 2 | 3
   }): Promise<void> {
     assert(params.aggregate.version > 0, 'aggregate version must be greater than 0');
 
