@@ -185,6 +185,7 @@ export class MongoStoreAdapter implements StoreAdapter {
     retryStartingDelay?: number;
     retryMaxDelay?: number;
     retryMaxAttempts?: number;
+    writeConcern?: 'majority' | 'primary' | 1 | 2 | 3
   }) {
     const [EventModel, AggregateModel] = await Promise.all([
       this.model('Event'),
@@ -197,7 +198,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
         session.startTransaction({
           writeConcern: {
-            w: 'majority',
+            w: opts?.writeConcern === 'primary' ? 1 : opts?.writeConcern ?? 'majority',
           },
         });
 
@@ -235,21 +236,21 @@ export class MongoStoreAdapter implements StoreAdapter {
         }
       },
       {
-        startingDelay: opts?.retryStartingDelay ?? 50,
-        maxDelay: opts?.retryMaxDelay ?? 450,
+        startingDelay: opts?.retryStartingDelay ?? 32,
+        maxDelay: opts?.retryMaxDelay ?? 512,
         numOfAttempts: opts?.retryMaxAttempts ?? 16,
-        timeMultiple: 1.5,
+        timeMultiple: 2,
         jitter: 'full',
         retry: (err) => {
-          const retry = RetrieableMongoErrorCodes.has(err.codeName);
+          const shouldRetry = RetrieableMongoErrorCodes.has(err.codeName);
 
-          if (retry) {
+          if (shouldRetry) {
             this.logger.warn('retry #finalizeAggregate: code=%s', err.codeName);
           } else {
             this.logger.error('error #finalizeAggregate: message=%s', err.message);
           }
 
-          return retry;
+          return shouldRetry;
         },
       },
     );
@@ -300,7 +301,7 @@ export class MongoStoreAdapter implements StoreAdapter {
         },
       });
 
-      let _aggregate: { version: number } | null;
+      let aggregate: { version: number } | null;
 
       try {
         await EventModel.insertMany(params.events.map((event, index) => ({
@@ -320,7 +321,7 @@ export class MongoStoreAdapter implements StoreAdapter {
 
         const version = params.aggregate.version + params.events.length - 1;
 
-        _aggregate = await AggregateModel.findByIdAndUpdate(
+        aggregate = await AggregateModel.findByIdAndUpdate(
           params.aggregate.id,
           {
             $set: {
@@ -344,7 +345,7 @@ export class MongoStoreAdapter implements StoreAdapter {
         throw err;
       }
 
-      if ((_aggregate?.version ?? 0) !== params.aggregate.version - 1) {
+      if ((aggregate?.version ?? 0) !== params.aggregate.version - 1) {
         await session.abortTransaction();
         await session.endSession();
 
@@ -361,21 +362,21 @@ export class MongoStoreAdapter implements StoreAdapter {
 
       await session.endSession();
     }, {
-      startingDelay: opts?.retryStartingDelay ?? 50,
-      maxDelay: opts?.retryMaxDelay ?? 450,
+      startingDelay: opts?.retryStartingDelay ?? 32,
+      maxDelay: opts?.retryMaxDelay ?? 512,
       numOfAttempts: opts?.retryMaxAttempts ?? 16,
-      timeMultiple: 1.5,
+      timeMultiple: 2,
       jitter: 'full',
       retry: (err) => {
-        const retry = RetrieableMongoErrorCodes.has(err.codeName);
+        const shouldRetry = RetrieableMongoErrorCodes.has(err.codeName);
 
-        if (retry) {
+        if (shouldRetry) {
           this.logger.warn('retry #saveEvents: code=%s', err.codeName);
         } else {
           this.logger.error('error #saveEvents: message=%s', err.message);
         }
 
-        return retry;
+        return shouldRetry;
       },
     });
   }

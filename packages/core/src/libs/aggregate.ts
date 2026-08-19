@@ -177,9 +177,24 @@ export class Aggregate<
   }
 
   public async finalize() {
+    const timestamp = new Date();
+
     const release = await this.mutex.acquire();
 
     try {
+      await this._reload();
+
+      await this.store.saveSnapshot({
+        aggregate: {
+          id: this.id,
+          version: this.version,
+        },
+        state: this.opts.serializeState(this.state),
+        timestamp,
+      }).catch((err) => {
+        this.logger.warn(`error occured while saving snapshot: error="${err.message}"`);
+      });
+
       await this.store.finalizeAggregate({
         id: this.id,
       });

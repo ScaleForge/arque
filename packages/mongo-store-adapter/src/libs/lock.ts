@@ -79,20 +79,18 @@ export class Lock {
     const owner = randomBytes(16);
 
     return backOff(async () => {
-      const existing = await model.findOne({ _id })
-        .select({ _id: 1 })
-        .read('primary');
-
-      if (existing) {
-        throw new LockHeldError();
-      }
-
       await model.insertOne({
         _id,
         owner,
         timestamp: new Date(),
       }, {
         w: 'majority',
+      }).catch((error: { code?: number; codeName?: string }) => {
+        if (error.code === 11000 || error.codeName === 'DuplicateKey') {
+          throw new LockHeldError();
+        }
+
+        throw error;
       });
 
       return new Lock(model, _id, owner);
@@ -101,11 +99,7 @@ export class Lock {
       maxDelay: LOCK_POLL_MAX_DELAY_MS,
       numOfAttempts: 32,
       jitter: 'full',
-      retry: (error) => {
-        const err = error as { code?: number; codeName?: string };
-
-        return error instanceof LockHeldError || err.code === 11000 || err.codeName === 'DuplicateKey';
-      },
+      retry: (error) => error instanceof LockHeldError,
     });
   }
 }
