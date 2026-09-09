@@ -306,7 +306,7 @@ export class Aggregate<
         startingDelay: 32,
         timeMultiple: 2,
         retry: (err) => {
-          if (err instanceof AggregateVersionConflictError) {
+          if (err instanceof AggregateVersionConflictError || err.name === 'AggregateVersionConflictError') {
             this.logger.warn(`retrying: error="${err.message}"`);
 
             return true;

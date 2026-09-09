@@ -5,12 +5,16 @@ export class AggregateVersionConflictError extends Error {
     super(
       `aggregate version conflict: id=${id.toString('hex')} version=${version}`,
     );
+
+    this.name = 'AggregateVersionConflictError';
   }
 }
 
 export class AggregateIsFinalError extends Error {
   constructor(id: Buffer) {
     super(`aggregate is final: id=${id.toString('hex')}`);
+
+    this.name = 'AggregateIsFinalError';
   }
 }
 
