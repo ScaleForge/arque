@@ -41,6 +41,9 @@
     },
     "explore": {
       "model": "openai/gpt-6-luna#high"
+    },
+    "general": {
+      "model": "openai/gpt-6-luna"
     }
   }
 }
