@@ -13,8 +13,8 @@ compatibility: opencode
 
 ## Execution Behavior
 
-- **Always use the `read` agent first** to inspect `git status` and `git diff` (staged and unstaged). Never assume the working tree is clean without checking.
-- **Use the `read` agent to summarize the uncommitted changes and draft the commit message** before staging files or creating commits.
+- **Always use the `general` subagent first** to inspect `git status` and `git diff` (staged and unstaged). Never assume the working tree is clean without checking.
+- **Use the `general` subagent to summarize the uncommitted changes and draft the commit message** before staging files or creating commits.
 - Proceed immediately with commit workflow when invoked
 - Default to committing all current changes when no file list is provided
 - If changes span multiple areas or scopes, always split them into focused commits without asking for confirmation
@@ -22,14 +22,14 @@ compatibility: opencode
 
 ## Workflow
 
-1. **Inspect uncommitted changes with the `read` agent.** Have the `read` agent review the current worktree and return:
+1. **Inspect uncommitted changes with the `general` subagent.** Have the `general` subagent review the current worktree and return:
 
    - A concise summary of the uncommitted changes grouped by area or file.
    - The likely purpose of the changes.
    - A proposed commit scope split when the changes span multiple areas.
    - A draft commit message for each proposed commit.
 
-2. **Decide commit scope.** Use the `read` agent output to determine whether the changes belong in one commit or multiple commits. When the changes span multiple areas or scopes, split them into focused commits automatically.
+2. **Decide commit scope.** Use the `general` subagent output to determine whether the changes belong in one commit or multiple commits. When the changes span multiple areas or scopes, split them into focused commits automatically.
 
 3. **Create the commit.** Stage the relevant files and use the drafted commit message, adjusting it only if needed to match the final staged scope.
 
