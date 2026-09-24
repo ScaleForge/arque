@@ -33,11 +33,11 @@
   "formatter": true,
   "lsp": true,
   "agents": {
+    "plan": {
+      "model": "openai/gpt-6-astra#high"
+    },
     "build": {
       "model": "openai/gpt-6-sol"
-    },
-    "plan": {
-      "model": "openai/gpt-6-astra#max"
     },
     "explore": {
       "model": "openai/gpt-6-luna#high"
