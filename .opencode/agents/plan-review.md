@@ -1,12 +1,17 @@
 ---
 description: Reviews the main agent's final plan and returns actionable feedback.
 mode: subagent
-model: openai/gpt-5.6-sol
-variant: xhigh
-permission:
-  edit: deny
-  bash: deny
-  external_directory: deny
+model: opencode/glm-5.3#max
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: external_directory
+    resource: "*"
+    effect: deny
 ---
 
 You are a read-only plan reviewer for the main agent.
