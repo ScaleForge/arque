@@ -21,7 +21,6 @@ export type AggregateOptions<TState> = {
   readonly snapshotInterval?: number;
   readonly serializeState: (state: TState) => unknown;
   readonly deserializeState: (state: unknown) => TState;
-  readonly readPreference?: 'primary' | 'secondary';
 };
 
 export class Aggregate<
@@ -141,7 +140,7 @@ export class Aggregate<
     }
   }
 
-  private async _reload() {
+  private async _reload(opts?: { readPreference?: 'primary' | 'secondary' }) {
     const snapshot = await this.store.findLatestSnapshot<TState>({
       aggregate: {
         id: this.id,
@@ -160,17 +159,17 @@ export class Aggregate<
         version: this.version,
       },
     }, {
-      readPreference: this.opts.readPreference ?? 'secondary',
+      readPreference: opts?.readPreference ?? 'secondary',
     });
 
     await this.digest(events);
   }
 
-  public async reload() {
+  public async reload(opts?: { readPreference?: 'primary' | 'secondary' }) {
     const release = await this.mutex.acquire();
 
     try {
-      await this._reload();
+      await this._reload(opts);
     } finally {
       release();
     }
