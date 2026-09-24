@@ -61,7 +61,54 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-## 5. Final Plan Review (Very Important)
+For code changes, verify with:
+
+```bash
+npx nx run-many --target=typecheck,lint --skip-nx-cache
+```
+
+### Implementation Plan Specification
+
+For any change involving code, configuration, data, or tests, make the plan specific enough that another engineer could implement it without reconstructing the approach. Include:
+
+- **Objective:** State the user-visible or system behavior that must change.
+- **Scope:** List the affected projects, files, and symbols. State what is explicitly out of scope.
+- **Current behavior:** Describe the existing control flow or contract that the change relies on.
+- **Target behavior:** Describe the exact inputs, conditions, outputs, side effects, and fallback behavior after the change.
+- **Assumptions and decisions:** Record assumptions, unresolved questions, compatibility requirements, and the reason for each non-obvious design choice.
+- **Implementation steps:** For every step, name the file and symbol to change, describe the code-level change, and identify what must remain unchanged.
+- **Test plan:** Name the test files or targets, the scenarios to cover, and the commands to run. Include negative, boundary, permission, error, and backward-compatibility cases when applicable.
+- **Verification criteria:** Define the exact evidence that proves each step is complete, including expected test, typecheck, lint, build, migration, or diff results.
+- **Risks and follow-up:** Identify behavior that could regress, data or API compatibility concerns, and any work intentionally deferred.
+
+Use this format for non-trivial work:
+
+```
+Objective: [behavior to change]
+Scope: [projects/files/symbols]; out of scope: [explicit exclusions]
+Assumptions: [known constraints and decisions]
+
+Current behavior: [relevant existing flow or contract]
+Target behavior: [exact new flow, conditions, outputs, and fallbacks]
+
+Implementation:
+1. [file and symbol] → [specific code change] → verify: [check]
+2. [file and symbol] → [specific code change] → verify: [check]
+
+Tests:
+- [test file/target] → [scenario and assertion]
+- Command: `[exact command]`
+
+Success criteria:
+- [observable behavior or verification result]
+- [observable behavior or verification result]
+
+Risks/follow-up: [known risks or explicitly deferred work]
+```
+
+Do not use vague steps such as "update the service" or "add tests". Name the method, argument, branch, event, schema field, migration, or configuration key being changed. If investigation changes the scope or design, revise the plan before continuing.
+
+## 5. Final Plan Review
 
 Before presenting or executing a final plan for a non-trivial task:
 
