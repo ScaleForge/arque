@@ -23,7 +23,7 @@ export class Broker {
 
       if (streams.length === 0) {
         this.logger.warn(`no streams found for event type: ${event.type}`);
-        
+
         return;
       }
 

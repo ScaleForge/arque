@@ -1,7 +1,7 @@
 import { EventId } from './event-id';
 
 export type Meta<T extends Record<string, unknown> = Record<string, unknown>> = {
-  __ctx?: Buffer;
+  __ctx?: Buffer | ({ __: Buffer } & Record<string, Buffer>);
 } & T;
 
 export type Event<

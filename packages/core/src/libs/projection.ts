@@ -29,7 +29,7 @@ export class Projection<
     private readonly stream: StreamAdapter,
     private readonly config: ConfigAdapter,
     eventHandlers: TEventHandler[],
-    private _id: string,
+    private _stream: string | { id: string; context: string },
     private readonly _state: TState,
     private readonly opts?: {
       disableSaveStream?: true;
@@ -41,7 +41,11 @@ export class Projection<
   }
 
   get id() {
-    return this._id;
+    return typeof this._stream === 'string' ? this._stream : this._stream.id;
+  }
+
+  get context() {
+    return typeof this._stream === 'string' ? null : this._stream.context;
   }
 
   get state() {
@@ -62,7 +66,7 @@ export class Projection<
     }
 
     const { handle } = handler;
-    
+
     if (await this.store.checkProjectionCheckpoint({ projection: this.id, aggregate: event.aggregate })) {
       try {
         await handle({ state: this._state }, event);
@@ -112,6 +116,7 @@ export class Projection<
       await this.config.saveStream({
         id: this.id,
         events: [...new Set([...this.eventHandlers.values()].map(item => item.type)).values()],
+        context: this.context,
       });
     }
 

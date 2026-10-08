@@ -209,7 +209,7 @@ export class Aggregate<
     };
     timestamp: Date;
     events: Pick<Event, 'id' | 'type' | 'body' | 'meta' | 'timestamp'>[];
-  }, ctx?: Buffer) {
+  }, ctx?: Buffer | ({ __: Buffer } & Record<string, Buffer>)) {
     await this.store.saveEvents(params);
 
     const events = params.events.map((item, index) => ({
@@ -248,7 +248,7 @@ export class Aggregate<
     }
   }
 
-  public async process(command: ExtractCommand<TCommandHandler>, ctx?: Buffer, opts?: {
+  public async process(command: ExtractCommand<TCommandHandler>, ctx?: Buffer | ({ __: Buffer } & Record<string, Buffer>), opts?: {
     noReload?: true,
     maxRetries?: number,
   }): Promise<void> {

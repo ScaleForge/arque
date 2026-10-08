@@ -115,6 +115,45 @@ describe('Aggregate#process', () => {
     }));
   });
 
+  test.concurrent('process with ctx', async () => {
+    const id = randomBytes(13);
+
+    const ctx = { __: randomBytes(13), member: randomBytes(13) };
+
+    const store = {
+      listEvents: jest.fn().mockResolvedValue(arrayToAsyncIterableIterator([])),
+      findLatestSnapshot: jest.fn().mockResolvedValue(null),
+      saveEvents: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const stream = {
+      sendEvents: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const aggregate = new Aggregate<BalanceAggregateState, typeof UpdateBalanceCommandHandler, typeof BalanceUpdatedEventHandler>(
+      store as never,
+      stream as never,
+      [UpdateBalanceCommandHandler],
+      [BalanceUpdatedEventHandler],
+      id,
+      0,
+      { balance: 0 },
+    );
+
+    await aggregate.process({
+      type: CommandType.UpdateBalance,
+      args: [{ amount: 10 }],
+    }, ctx);
+
+    expect(store.saveEvents).toHaveBeenCalledWith(expect.objectContaining({
+      events: [expect.objectContaining({ meta: {} })],
+    }));
+    expect(stream.sendEvents).toHaveBeenCalledWith([{
+      stream: 'main',
+      events: [expect.objectContaining({ meta: { __ctx: ctx } })],
+    }]);
+  });
+
   test.concurrent('invalid command', async () => {
     const id = randomBytes(13);
 

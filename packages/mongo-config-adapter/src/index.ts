@@ -1,4 +1,4 @@
-import { ConfigAdapter } from '@arque/core';
+import { ConfigAdapter, Stream } from '@arque/core';
 import mongoose, { Connection, ConnectOptions } from 'mongoose';
 import * as schema from './libs/schema';
 import { LRUCache } from 'lru-cache';
@@ -14,7 +14,7 @@ export type MongoConfigAdapterOptions = Partial<Options>;
 export class MongoConfigAdapter implements ConfigAdapter {
   private readonly opts: Options;
 
-  private readonly cache: LRUCache<number, string[]>;
+  private readonly cache: LRUCache<number, Pick<Stream, 'id' | 'context'>[]>;
 
   private _connection: Promise<Connection>;
 
@@ -29,8 +29,8 @@ export class MongoConfigAdapter implements ConfigAdapter {
       minPoolSize: opts?.minPoolSize ?? Math.floor(maxPoolSize * 0.2),
       socketTimeoutMS: opts?.socketTimeoutMS ?? 45_000,
       serverSelectionTimeoutMS: opts?.serverSelectionTimeoutMS ?? 30_000,
-      cacheMax: opts?.cacheMax ?? 2_500,
-      cacheTTL: opts?.cacheTTL ?? 1_000 * 60 * 60,
+      cacheMax: opts?.cacheMax ?? 1_000,
+      cacheTTL: opts?.cacheTTL ?? 1_000 * 60 * 60 * 2,
     };
 
     this.cache = new LRUCache({
@@ -84,7 +84,9 @@ export class MongoConfigAdapter implements ConfigAdapter {
     return connection.model(model, schema[model]);
   }
 
-  async saveStream(params: { id: string; events: number[] }): Promise<void> {
+  async saveStream(params: { id: string; events: number[]; context?: string | null }): Promise<void> {
+    const timestamp = new Date();
+
     const StreamModel = await this.model('Stream');
 
     await StreamModel.updateOne({
@@ -92,14 +94,15 @@ export class MongoConfigAdapter implements ConfigAdapter {
     }, {
       $set: {
         events: params.events,
-        timestamp: new Date(),
+        context: params.context ?? null,
+        timestamp,
       },
     }, {
       upsert: true,
     });
   }
 
-  async findStreams(event: number): Promise<string[]> {
+  async findStreams(event: number): Promise<Pick<Stream, 'id' | 'context'>[]> {
     let streams = this.cache.get(event);
 
     if (streams) {
@@ -108,15 +111,18 @@ export class MongoConfigAdapter implements ConfigAdapter {
 
     const StreamModel = await this.model('Stream');
 
-    const docs = await StreamModel.find({
+    const documents = await StreamModel.find({
       events: event,
     });
 
-    if (!docs) {
+    if (!documents) {
       return [];
     }
 
-    streams = docs.map((doc) => doc._id);
+    streams = documents.map((document) => ({
+      id: document._id,
+      context: document.context ?? null,
+    }));
 
     this.cache.set(event, streams);
 

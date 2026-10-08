@@ -1,4 +1,5 @@
 import { Event as GlobalEvent } from '../types';
+import { Stream } from './config-adapter';
 
 type Event = Pick<GlobalEvent, 'id' | 'type' | 'aggregate' | 'meta' | 'timestamp'> & { body: Buffer | Record<string, unknown> | null };
 
@@ -11,8 +12,8 @@ export interface StreamAdapter {
 
   sendEvents(
     events: {
-      stream: string;
-      events: Event[]; 
+      stream: string | Pick<Stream, 'id' | 'context'>;
+      events: Event[];
     }[],
     opts?: { raw?: true },
   ): Promise<void>;
@@ -25,6 +26,6 @@ export interface StreamAdapter {
       numOfAttempts?: number;
       retry?: (err: Error) => Promise<boolean>;
     } }): Promise<Subscriber>;
-  
+
   close(): Promise<void>;
 }

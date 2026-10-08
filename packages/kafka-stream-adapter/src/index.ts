@@ -1,4 +1,4 @@
-import { StreamAdapter, Subscriber } from '@arque/core';
+import { Stream, StreamAdapter, Subscriber } from '@arque/core';
 import { Kafka, Producer, logLevel } from 'kafkajs';
 import { deserialize, serialize } from './libs/serialization';
 import { murmurHash } from 'ohash';
@@ -61,7 +61,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
       this.logger.error(`producer connection error: error=${err.message}`);
     });
   }
-  
+
   async subscribe(
     stream: string,
     handle: (event: Event) => Promise<void>,
@@ -100,7 +100,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
     consumer.on('consumer.group_join', (event) => {
       this.logger.verbose(`consumer.group_join: ${JSON.stringify(event)}`);
     });
-    
+
     await consumer.run({
       async eachMessage({ message }) {
         assert(message.value, '`message.value` is null');
@@ -176,10 +176,10 @@ export class KafkaStreamAdapter implements StreamAdapter {
             retries: 5,
             multiplier: 2,
           },
-          createPartitioner: () => ({ partitionMetadata, message: { headers: { __ctx } } }) => 
+          createPartitioner: () => ({ partitionMetadata, message: { headers: { __ctx } } }) =>
             murmurHash(new Uint8Array(<Buffer>__ctx)) % partitionMetadata.length,
         });
-    
+
         await producer.connect();
 
         return producer;
@@ -195,7 +195,7 @@ export class KafkaStreamAdapter implements StreamAdapter {
 
   async sendEvents(
     params: {
-      stream: string;
+      stream: string | Pick<Stream, 'id' | 'context'>;
       events: Event[];
     }[],
     opts?: { raw?: true },
@@ -206,13 +206,20 @@ export class KafkaStreamAdapter implements StreamAdapter {
 
     await producer.sendBatch({
       topicMessages: params.map(({ stream, events }) => {
+
         return {
-          topic: `${this.opts.prefix}.${stream}`,
+          topic: `${this.opts.prefix}.${typeof stream === 'string' ? stream : stream.id}`,
           messages: events.map(event => {
+            const ctx = event.meta.__ctx;
+
+            const context = Buffer.isBuffer(ctx)
+              ? ctx
+              : (typeof stream !== 'string' && stream.context ? ctx?.[stream.context] : undefined) ?? ctx?.__;
+
             return {
               value: serialize(event, this.joser, opts?.raw),
               headers: {
-                __ctx: event.meta.__ctx ?? Buffer.from([0]),
+                __ctx: context ?? Buffer.from([0]),
               },
             };
           }),
