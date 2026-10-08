@@ -1,9 +1,6 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "paths": {
-      "@arque/core": ["../packages/core/src/index"]
-    }
+    "allowSyntheticDefaultImports": true
   }
 }

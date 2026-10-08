@@ -49,5 +49,6 @@
     "production": [
       "default"
     ]
-  }
+  },
+  "analytics": false
 }
