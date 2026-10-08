@@ -34,7 +34,7 @@
   "lsp": true,
   "agents": {
     "plan": {
-      "model": "openai/gpt-6-astra#high"
+      "model": "openai/gpt-6.1-sol#high"
     },
     "build": {
       "model": "openai/gpt-6-sol"

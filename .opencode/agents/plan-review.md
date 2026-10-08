@@ -1,7 +1,7 @@
 ---
 description: Reviews the main agent's final plan and returns actionable feedback.
 mode: subagent
-model: opencode/glm-5.3#max
+model: opencode/deepseek-v4.1-flash#high
 permissions:
   - action: edit
     resource: "*"
